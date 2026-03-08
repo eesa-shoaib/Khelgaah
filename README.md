@@ -20,8 +20,6 @@ The project is divided into three 2-week iterations, each focusing on a working 
 ## TODO
 
 - **Phase 1** - Foundation & Discovery (Current)
-self is open source with a [public repository][dill]
- on GitHub.
 
 ## License
 
