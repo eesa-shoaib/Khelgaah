@@ -2,9 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/features/profile/widgets/profile_header.dart';
 import 'home/home_screen.dart';
-import 'booking/booking_screen.dart';
 import 'profile/profile_screen.dart';
 
 class MainLayout extends StatefulWidget {

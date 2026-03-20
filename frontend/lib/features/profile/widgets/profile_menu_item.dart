@@ -18,10 +18,11 @@ class ProfileMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      contentPadding: EdgeInsetsGeometry.only(left: 20, right: 20),
       onTap: onTap,
       leading: Icon(
         icon,
-        color: isDestructive ? AppTheme.redPrimary : AppTheme.orangePrimary,
+        color: isDestructive ? AppTheme.error : AppTheme.orangePrimary,
       ),
       title: Text(
         title,
@@ -29,7 +30,11 @@ class ProfileMenuItem extends StatelessWidget {
           color: isDestructive ? AppTheme.error : AppTheme.textPrimary,
         ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.orangePrimary,),
+      trailing: const Icon(
+        Icons.arrow_forward_ios,
+        size: 16,
+        color: AppTheme.orangePrimary,
+      ),
     );
   }
 }

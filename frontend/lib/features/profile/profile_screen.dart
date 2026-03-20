@@ -13,10 +13,10 @@ class ProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const ProfileHeader(name: 'Eesa', email: 'eesa.shoaib@gmail.com'),
-            const SizedBox(height: 30),
-            const Divider(),
+            const SizedBox(height: 10),
+            const Divider(color: AppTheme.orangePrimary),
             ProfileMenuItem(
               icon: Icons.history,
               title: 'Booking History',
