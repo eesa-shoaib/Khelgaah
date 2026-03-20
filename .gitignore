@@ -1,0 +1,39 @@
+# General
+*.log
+*.tmp
+*.swp
+.DS_Store
+.idea/
+.vscode/
+
+# Flutter / Dart
+frontend/.dart_tool/
+frontend/.packages
+frontend/.pub-cache/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+
+# Android
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/local.properties
+
+# iOS
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/ios/Flutter/Flutter.framework
+frontend/ios/Flutter/Flutter.podspec
+
+# Web
+frontend/build/web/
+
+# Environment files
+.env
+
+# Node (if backend later)
+backend/node_modules/
+
+# Python (if backend later)
+backend/__pycache__/
+backend/*.pyc
