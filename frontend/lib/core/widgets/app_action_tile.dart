@@ -1,0 +1,100 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:frontend/core/theme/app_theme.dart';
+
+class ArrowClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    const arrowTip = 20.0;
+
+    path.moveTo(0, 0); // top-left (flat)
+    path.lineTo(size.width - arrowTip, 0); // top-right before tip
+    path.lineTo(size.width, size.height / 2); // arrow tip (right point)
+    path.lineTo(size.width - arrowTip, size.height); // bottom-right before tip
+    path.lineTo(0, size.height); // bottom-left (flat)
+    path.close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class AppActionTile extends StatelessWidget {
+  final String title;
+  final VoidCallback onTap;
+  final IconData? leadingIcon;
+  final IconData? trailingIcon;
+  final bool isDestructive;
+  final EdgeInsetsGeometry margin;
+
+  const AppActionTile({
+    super.key,
+    required this.title,
+    required this.onTap,
+    this.leadingIcon,
+    this.trailingIcon = Icons.arrow_forward_ios,
+    this.isDestructive = false,
+    this.margin = const EdgeInsets.symmetric(vertical: 6),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accentColor = isDestructive ? AppTheme.error : AppTheme.orangePrimary;
+    final titleColor = isDestructive ? AppTheme.error : AppTheme.textPrimary;
+    final borderColor = isDestructive ? AppTheme.error : AppTheme.orangePrimary;
+
+    return Padding(
+      padding: margin,
+      child: ClipPath(
+        clipper: ArrowClipper(),
+        child: Container(
+          color: borderColor,
+          padding: const EdgeInsets.all(1.2),
+          child: ClipPath(
+            clipper: ArrowClipper(),
+            child: Material(
+              color: AppTheme.surface,
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onTap();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 32,
+                    top: 16,
+                    bottom: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      if (leadingIcon != null) ...[
+                        Icon(leadingIcon, color: accentColor),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            color: titleColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      if (trailingIcon != null)
+                        Icon(trailingIcon, size: 18, color: accentColor),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

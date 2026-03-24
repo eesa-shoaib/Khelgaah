@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // 🎨 Ashen Palette
   static const Color background = Color(0xFF121212);
   static const Color surface = Color(0xFF1D1D1D);
 
@@ -17,10 +16,11 @@ class AppTheme {
 
   static const Color error = Color(0xFFC53030); // red_flame
 
+  static const Color divider = orangePrimary;
+
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
 
-    // ✅ Correct font
     fontFamily: 'DMMono',
 
     scaffoldBackgroundColor: background,
@@ -31,6 +31,10 @@ class AppTheme {
       surface: surface,
       error: error,
     ),
+    splashFactory: NoSplash.splashFactory,
+    splashColor: Colors.transparent,
+    highlightColor: Colors.transparent,
+    hoverColor: Colors.transparent,
 
     appBarTheme: const AppBarTheme(
       backgroundColor: background,
@@ -44,6 +48,7 @@ class AppTheme {
       bodyMedium: TextStyle(color: textSecondary),
     ),
 
+    dividerColor: divider,
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: orangePrimary,
@@ -52,33 +57,62 @@ class AppTheme {
       ),
     ),
 
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: surface,
+      selectedItemColor: orangePrimary,
+      unselectedItemColor: textSecondary,
+      selectedIconTheme: IconThemeData(size: 24),
+      unselectedIconTheme: IconThemeData(size: 24),
+      selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+      unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500),
+      elevation: 8,
+      type: BottomNavigationBarType.fixed,
+      showUnselectedLabels: true,
+      enableFeedback: false,
+    ),
+    listTileTheme: const ListTileThemeData(
+      iconColor: orangePrimary,
+      textColor: textPrimary,
+      tileColor: Colors.transparent,
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: background,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      titleTextStyle: const TextStyle(
+        color: textPrimary,
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+      ),
+      contentTextStyle: const TextStyle(color: textSecondary, fontSize: 14),
+    ),
+
     cardColor: surface,
   );
 }
 
-// Core Design Principles 
+// Core Design Principles
 
 // Think of your UI in 3 layers:
 
-  // 1. Background (base)
+// 1. Background (base)
 
-    // Always: background (#121212)
-    // Clean, minimal, no noise
+// Always: background (#121212)
+// Clean, minimal, no noise
 
-  // 2. Surfaces (cards, sections)
+// 2. Surfaces (cards, sections)
 
-    // Use: surface (#1d1d1d)
-    // Slight contrast from background
+// Use: surface (#1d1d1d)
+// Slight contrast from background
 
-  // 3. Accents (actions)
+// 3. Accents (actions)
 
-    // Primary action → orange_blaze (#C4693D)
-    // Secondary → orange_golden (#E5A72A)
-    // Important → red_ember (#B14242)
+// Primary action → orange_blaze (#C4693D)
+// Secondary → orange_golden (#E5A72A)
+// Important → red_ember (#B14242)
 
-  // Rule (very important)
+// Rule (very important)
 
-      // Color = meaning
-      // Orange → user can act
-      // Red → important / destructive / highlight
-      // Grey → passive / info
+// Color = meaning
+// Orange → user can act
+// Red → important / destructive / highlight
+// Grey → passive / info

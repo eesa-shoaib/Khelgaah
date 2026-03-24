@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import 'package:frontend/core/widgets/app_action_tile.dart';
 
 class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
@@ -17,24 +17,12 @@ class ProfileMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsetsGeometry.only(left: 20, right: 20),
+    return AppActionTile(
+      title: title,
       onTap: onTap,
-      leading: Icon(
-        icon,
-        color: isDestructive ? AppTheme.error : AppTheme.orangePrimary,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDestructive ? AppTheme.error : AppTheme.textPrimary,
-        ),
-      ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: AppTheme.orangePrimary,
-      ),
+      leadingIcon: icon,
+      isDestructive: isDestructive,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
     );
   }
 }

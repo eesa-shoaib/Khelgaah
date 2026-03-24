@@ -1,42 +1,43 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 import 'home/home_screen.dart';
-import 'profile/profile_screen.dart';
+import 'search/search_screen.dart';
 
 class MainLayout extends StatefulWidget {
-  const MainLayout({super.key});
+  final int initialIndex;
+
+  const MainLayout({super.key, this.initialIndex = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const Center(child: Text("Search Screen")),
-    const ProfileScreen(),
-  ];
+  final List<Widget> _screens = [const HomeScreen(), const SearchScreen()];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        enableFeedback: false,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        selectedItemColor: AppTheme.orangePrimary,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );

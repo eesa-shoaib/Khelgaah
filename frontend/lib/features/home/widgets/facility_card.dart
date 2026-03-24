@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import 'package:frontend/core/widgets/app_action_tile.dart';
 
 class FacilityCard extends StatelessWidget {
   final String name;
@@ -9,30 +9,10 @@ class FacilityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AppActionTile(
+      title: name,
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsetsGeometry.symmetric(vertical: 2, horizontal: 16),
-        padding: const EdgeInsetsGeometry.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 18,
-              color: AppTheme.orangePrimary,
-            ),
-          ],
-        ),
-      ),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
     );
   }
 }

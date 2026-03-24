@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/widgets/parallelogram_btn.dart';
+import 'package:frontend/features/auth/auth_screen.dart';
 import 'package:frontend/features/profile/widgets/profile_header.dart';
 import 'package:frontend/features/profile/widgets/profile_menu_item.dart';
-import '../../core/theme/app_theme.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,17 +18,27 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 10),
             const ProfileHeader(name: 'Eesa', email: 'eesa.shoaib@gmail.com'),
             const SizedBox(height: 10),
-            const Divider(color: AppTheme.orangePrimary),
+            const Divider(color: AppTheme.divider),
             ProfileMenuItem(
               icon: Icons.history,
               title: 'Booking History',
-              onTap: () {},
+              onTap: () => _showInfoDialog(
+                context,
+                title: 'Booking History',
+                description:
+                    'Recent bookings: Badminton Court 02, Gym Strength Block, and Swimming Pool Lane 03.',
+              ),
               isDestructive: false,
             ),
             ProfileMenuItem(
               icon: Icons.settings,
               title: 'Settings',
-              onTap: () {},
+              onTap: () => _showInfoDialog(
+                context,
+                title: 'Settings',
+                description:
+                    'Notifications, preferred sports, and payment methods will be managed here.',
+              ),
               isDestructive: false,
             ),
             ProfileMenuItem(
@@ -42,23 +54,48 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+void _showInfoDialog(
+  BuildContext context, {
+  required String title,
+  required String description,
+}) {
+  showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(description),
+      actions: [
+        ParallelogramButton(
+          onPressed: () => Navigator.pop(context),
+          text: 'Close',
+          variant: ParallelogramButtonVariant.surface,
+        ),
+      ],
+    ),
+  );
+}
+
 void _showLogoutDialog(BuildContext context) {
-  showDialog(
+  showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text('Logout'),
       content: const Text('Are you sure you want to exit?'),
       actions: [
-        TextButton(
+        ParallelogramButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: AppTheme.textPrimary),
-          ),
+          text: 'Cancel',
+          variant: ParallelogramButtonVariant.surface,
         ),
-        TextButton(
-          onPressed: () {},
-          child: const Text('Logout', style: TextStyle(color: AppTheme.error)),
+        ParallelogramButton(
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AuthScreen()),
+              (route) => false,
+            );
+          },
+          text: 'Logout',
+          variant: ParallelogramButtonVariant.destructive,
         ),
       ],
     ),
