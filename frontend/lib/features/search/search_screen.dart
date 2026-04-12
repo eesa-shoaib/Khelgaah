@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/features/booking/booking_screen.dart';
+import 'package:frontend/features/booking/models/booked_facility_details.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final ValueChanged<BookedFacilityDetails>? onBookingUpdated;
+
+  const SearchScreen({super.key, this.onBookingUpdated});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -59,8 +63,18 @@ class _SearchScreenState extends State<SearchScreen> {
               onChanged: (value) => setState(() => _query = value),
               suffixIcon: IconButton(
                 onPressed: () {
+                  if (_query.isEmpty) {
+                    return;
+                  }
+
+                  AppFeedback.haptic(AppFeedbackType.selection);
                   _searchController.clear();
                   setState(() => _query = '');
+                  AppFeedback.pulseMessage(
+                    context,
+                    message: 'Search reset.',
+                    icon: Icons.restart_alt,
+                  );
                 },
                 icon: const Icon(
                   Icons.close,
@@ -99,12 +113,17 @@ class _SearchScreenState extends State<SearchScreen> {
                 title: '${facility.$1}  •  ${facility.$2}',
                 trailingIcon: Icons.arrow_forward_ios_sharp,
                 onTap: () {
-                  Navigator.push(
+                  AppFeedback.haptic(AppFeedbackType.tap);
+                  Navigator.push<BookedFacilityDetails>(
                     context,
                     MaterialPageRoute(
                       builder: (_) => BookingScreen(facilityName: facility.$1),
                     ),
-                  );
+                  ).then((bookedDetails) {
+                    if (bookedDetails != null) {
+                      widget.onBookingUpdated?.call(bookedDetails);
+                    }
+                  });
                 },
               ),
           ],

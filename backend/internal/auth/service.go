@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/mail"
 	"strings"
 
 	"github.com/eesa/khelgaah/backend/internal/users"
@@ -10,6 +12,7 @@ import (
 )
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
+var ErrInvalidSignup = errors.New("invalid signup input")
 
 type Repository interface {
 	CreateUser(ctx context.Context, params CreateUserParams) (users.User, error)
@@ -26,16 +29,30 @@ func NewService(repo Repository, tokenManager *TokenManager) *Service {
 }
 
 func (s *Service) Signup(ctx context.Context, input SignupInput) (AuthResult, error) {
+	fullName := strings.TrimSpace(input.FullName)
+	email := strings.TrimSpace(strings.ToLower(input.Email))
+	phone := strings.TrimSpace(input.Phone)
+
+	if fullName == "" {
+		return AuthResult{}, fmt.Errorf("%w: full_name is required", ErrInvalidSignup)
+	}
+	if _, err := mail.ParseAddress(email); err != nil {
+		return AuthResult{}, fmt.Errorf("%w: email must be valid", ErrInvalidSignup)
+	}
+	if len(input.Password) < 8 {
+		return AuthResult{}, fmt.Errorf("%w: password must be at least 8 characters", ErrInvalidSignup)
+	}
+
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return AuthResult{}, err
 	}
 
 	user, err := s.repo.CreateUser(ctx, CreateUserParams{
-		FullName:     strings.TrimSpace(input.FullName),
-		Email:        strings.TrimSpace(strings.ToLower(input.Email)),
+		FullName:     fullName,
+		Email:        email,
 		PasswordHash: string(passwordHash),
-		Phone:        strings.TrimSpace(input.Phone),
+		Phone:        phone,
 	})
 	if err != nil {
 		return AuthResult{}, err

@@ -3,6 +3,7 @@ package bookings
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/eesa/khelgaah/backend/internal/availability"
@@ -11,6 +12,7 @@ import (
 )
 
 var ErrSlotUnavailable = errors.New("selected slot is no longer available")
+var ErrInvalidBooking = errors.New("invalid booking input")
 
 type Service struct {
 	db               *pgxpool.Pool
@@ -23,13 +25,20 @@ func NewService(db *pgxpool.Pool, repo Repository, availabilityRepo availability
 }
 
 func (s *Service) Create(ctx context.Context, userID int64, input CreateBookingInput) (Booking, error) {
+	if input.FacilityID <= 0 {
+		return Booking{}, fmt.Errorf("%w: facility_id must be positive", ErrInvalidBooking)
+	}
+
 	start, err := time.Parse(time.RFC3339, input.StartTime)
 	if err != nil {
-		return Booking{}, err
+		return Booking{}, fmt.Errorf("%w: start_time must be RFC3339", ErrInvalidBooking)
 	}
 	end, err := time.Parse(time.RFC3339, input.EndTime)
 	if err != nil {
-		return Booking{}, err
+		return Booking{}, fmt.Errorf("%w: end_time must be RFC3339", ErrInvalidBooking)
+	}
+	if !end.After(start) {
+		return Booking{}, fmt.Errorf("%w: end_time must be after start_time", ErrInvalidBooking)
 	}
 
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})

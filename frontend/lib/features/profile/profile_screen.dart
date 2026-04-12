@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/parallelogram_btn.dart';
 import 'package:frontend/features/auth/auth_screen.dart';
 import 'package:frontend/features/profile/widgets/profile_header.dart';
@@ -59,6 +60,7 @@ void _showInfoDialog(
   required String title,
   required String description,
 }) {
+  AppFeedback.haptic(AppFeedbackType.tap);
   showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
@@ -76,6 +78,7 @@ void _showInfoDialog(
 }
 
 void _showLogoutDialog(BuildContext context) {
+  AppFeedback.haptic(AppFeedbackType.tap);
   showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(

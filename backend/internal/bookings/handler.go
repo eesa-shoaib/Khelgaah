@@ -33,6 +33,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, _ *slog.Logger, authMiddlew
 
 		booking, err := h.service.Create(r.Context(), userID, input)
 		if err != nil {
+			if errors.Is(err, ErrInvalidBooking) {
+				httpx.WriteError(w, http.StatusBadRequest, err.Error())
+				return
+			}
 			if errors.Is(err, ErrSlotUnavailable) {
 				httpx.WriteError(w, http.StatusConflict, err.Error())
 				return

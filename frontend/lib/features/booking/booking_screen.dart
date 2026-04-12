@@ -1,7 +1,10 @@
 // lib/features/booking/booking_screen.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
+import 'package:frontend/features/booking/booked_facility_screen.dart';
+import 'package:frontend/features/booking/models/booked_facility_details.dart';
 import 'package:frontend/features/booking/widgets/time_slot_item.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -45,6 +48,47 @@ class _BookingScreenState extends State<BookingScreen> {
 
   final List<int> durations = const [30, 60, 90];
 
+  double get _subtotal {
+    switch (selectedDuration) {
+      case 30:
+        return 18;
+      case 90:
+        return 46;
+      default:
+        return 32;
+    }
+  }
+
+  Future<void> _openBookedFacilityScreen() async {
+    if (selectedTime == null) {
+      return;
+    }
+
+    AppFeedback.haptic(AppFeedbackType.success);
+    final details = BookedFacilityDetails(
+      facilityName: widget.facilityName,
+      dayLabel: bookingDays[selectedDayIndex].$1,
+      dateLabel: bookingDays[selectedDayIndex].$2,
+      timeLabel: selectedTime!,
+      durationMinutes: selectedDuration,
+      subtotal: _subtotal,
+      serviceFee: 3.5,
+      bookingId: 'KF-${bookingDays[selectedDayIndex].$2}$selectedDuration',
+      accessNote: 'Court assignment is shared at reception after payment.',
+    );
+
+    final updatedDetails = await Navigator.push<BookedFacilityDetails>(
+      context,
+      MaterialPageRoute(builder: (_) => BookedFacilityScreen(details: details)),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.pop(context, updatedDetails ?? details);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,12 +129,17 @@ class _BookingScreenState extends State<BookingScreen> {
                   day: day,
                   date: date,
                   isSelected: selectedDayIndex == index,
-                  onTap: () {
-                    setState(() {
-                      selectedDayIndex = index;
-                    });
-                  },
-                );
+                    onTap: () {
+                      setState(() {
+                        selectedDayIndex = index;
+                      });
+                      AppFeedback.pulseMessage(
+                        context,
+                        message: 'Day set to $day $date.',
+                        icon: Icons.calendar_today_outlined,
+                      );
+                    },
+                  );
               },
             ),
           ),
@@ -122,6 +171,11 @@ class _BookingScreenState extends State<BookingScreen> {
                       setState(() {
                         selectedDuration = duration;
                       });
+                      AppFeedback.pulseMessage(
+                        context,
+                        message: '$duration minute session selected.',
+                        icon: Icons.timelapse_outlined,
+                      );
                     },
                   ),
                 );
@@ -163,6 +217,11 @@ class _BookingScreenState extends State<BookingScreen> {
                   setState(() {
                     selectedTime = time;
                   });
+                  AppFeedback.pulseMessage(
+                    context,
+                    message: '$time locked in.',
+                    icon: Icons.schedule,
+                  );
                 },
               );
             },
@@ -170,41 +229,7 @@ class _BookingScreenState extends State<BookingScreen> {
           const SizedBox(height: 16),
           ParallelogramButton(
             text: selectedTime == null ? 'Select a Slot' : 'Continue',
-            onPressed: () {
-              if (selectedTime == null) {
-                return;
-              }
-
-              showDialog<void>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Booking Ready'),
-                  content: Text(
-                    '${widget.facilityName}\n${bookingDays[selectedDayIndex].$1} ${bookingDays[selectedDayIndex].$2} • $selectedTime\n$selectedDuration minutes',
-                  ),
-                  actions: [
-                    ParallelogramButton(
-                      text: 'Close',
-                      onPressed: () => Navigator.pop(context),
-                      variant: ParallelogramButtonVariant.surface,
-                    ),
-                    ParallelogramButton(
-                      text: 'Confirm',
-                      onPressed: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Booked ${widget.facilityName} at $selectedTime for $selectedDuration minutes.',
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
+            onPressed: _openBookedFacilityScreen,
             fullWidth: true,
             icon: Icons.arrow_forward,
             enabled: selectedTime != null,

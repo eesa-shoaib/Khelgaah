@@ -1,6 +1,7 @@
 package availability
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -38,6 +39,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, _ *slog.Logger) {
 
 		slots, err := h.service.ListSlots(r.Context(), facilityID, date, duration)
 		if err != nil {
+			if errors.Is(err, ErrInvalidAvailabilityRequest) {
+				httpx.WriteError(w, http.StatusBadRequest, err.Error())
+				return
+			}
 			httpx.WriteError(w, http.StatusInternalServerError, "failed to load availability")
 			return
 		}
