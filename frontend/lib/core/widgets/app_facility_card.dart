@@ -8,6 +8,7 @@ class AppFacilityCard extends StatelessWidget {
   final String category;
   final double rating;
   final VoidCallback onTap;
+  final double height;
 
   const AppFacilityCard({
     super.key,
@@ -15,6 +16,7 @@ class AppFacilityCard extends StatelessWidget {
     required this.category,
     required this.rating,
     required this.onTap,
+    this.height = 60,
   });
 
   @override
@@ -22,6 +24,7 @@ class AppFacilityCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: CustomPaint(
+        size: Size.fromHeight(height),
         painter: _FacilityCardPainter(),
         child: ClipPath(
           clipper: _FacilityCardClipper(),
@@ -32,46 +35,49 @@ class AppFacilityCard extends StatelessWidget {
                 HapticFeedback.lightImpact();
                 onTap();
               },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
+              child: SizedBox(
+                height: height,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            category,
-                            style: const TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12,
+                            const SizedBox(height: 4),
+                            Text(
+                              category,
+                              style: const TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 12,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    AppRatingBadge(rating: rating),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_ios_sharp,
-                      color: AppTheme.orangePrimary,
-                      size: 16,
-                    ),
-                  ],
+                      AppRatingBadge(rating: rating),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.arrow_forward_ios_sharp,
+                        color: AppTheme.orangePrimary,
+                        size: 16,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

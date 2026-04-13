@@ -129,7 +129,7 @@ class HomeScreen extends StatelessWidget {
         actions: const [ProfileActionIcon()],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         children: [
           const Text(
             'Book your next session without the clutter.',
@@ -160,22 +160,21 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: categories.map((category) {
-              return Expanded(
-                flex: 3,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right: category != categories.last ? 10 : 0,
-                  ),
-                  child: _CategoryButton(
-                    label: category,
-                    icon: _getCategoryIcon(category),
-                    onTap: () => _openCategoryFacilities(context, category),
-                  ),
-                ),
-              );
-            }).toList(),
+          SizedBox(
+            height: 50,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: categories.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                return _CategoryButton(
+                  label: category,
+                  icon: _getCategoryIcon(category),
+                  onTap: () => _openCategoryFacilities(context, category),
+                );
+              },
+            ),
           ),
           const SizedBox(height: 20),
           const Text(
@@ -227,22 +226,19 @@ class _CategoryButton extends StatelessWidget {
             color: AppTheme.surface,
             border: Border.all(color: AppTheme.orangePrimary),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, color: AppTheme.orangePrimary, size: 18),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
               ),
             ],
