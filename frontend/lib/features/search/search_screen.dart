@@ -154,10 +154,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 meta: 'SEARCH EMPTY STATE',
               ),
             for (final facility in filteredFacilities)
-              AppActionTile(
-                title:
-                    '${facility.$1}  •  ${facility.$2}  (${facility.$3.toStringAsFixed(1)} ★)',
-                trailingIcon: Icons.arrow_forward_ios_sharp,
+              AppFacilityCard(
+                name: facility.$1,
+                category: facility.$2,
+                rating: facility.$3,
                 onTap: () {
                   AppFeedback.haptic(AppFeedbackType.tap);
                   Navigator.push<BookedFacilityDetails>(

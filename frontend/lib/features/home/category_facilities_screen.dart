@@ -31,8 +31,10 @@ class CategoryFacilitiesScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           for (final (name, rating) in facilities)
-            AppActionTile(
-              title: '$name (${rating.toStringAsFixed(1)} ★)',
+            AppFacilityCard(
+              name: name,
+              category: category,
+              rating: rating,
               onTap: () async {
                 AppFeedback.haptic(AppFeedbackType.tap);
                 final bookedDetails =
@@ -46,7 +48,6 @@ class CategoryFacilitiesScreen extends StatelessWidget {
                   onBookingUpdated(bookedDetails);
                 }
               },
-              leadingIcon: Icons.location_on,
             ),
         ],
       ),

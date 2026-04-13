@@ -4,9 +4,7 @@ import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/features/booking/booked_facility_screen.dart';
 import 'package:frontend/features/booking/models/booked_facility_details.dart';
-import 'package:frontend/features/search/search_screen.dart';
 import '../booking/booking_screen.dart';
-import 'widgets/facility_card.dart';
 import 'category_facilities_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -165,6 +163,7 @@ class HomeScreen extends StatelessWidget {
           Row(
             children: categories.map((category) {
               return Expanded(
+                flex: 3,
                 child: Padding(
                   padding: EdgeInsets.only(
                     right: category != categories.last ? 10 : 0,
@@ -191,31 +190,12 @@ class HomeScreen extends StatelessWidget {
           for (final category in categories)
             for (final (name, rating)
                 in (categoryFacilities[category] ?? []).take(1))
-              FacilityCard(
-                name: '$name (${rating.toStringAsFixed(1)} ★)',
+              AppFacilityCard(
+                name: name,
+                category: category,
+                rating: rating,
                 onTap: () => _openBooking(context, name),
               ),
-          const SizedBox(height: 16),
-          ParallelogramButton(
-            text: 'Open Search',
-            onPressed: () {
-              AppFeedback.pulseMessage(
-                context,
-                message: 'Search is ready. Swipe back anytime.',
-                icon: Icons.swipe_outlined,
-              );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      SearchScreen(onBookingUpdated: onBookingUpdated),
-                ),
-              );
-            },
-            fullWidth: true,
-            icon: Icons.search,
-            variant: ParallelogramButtonVariant.surface,
-          ),
         ],
       ),
     );
@@ -247,7 +227,7 @@ class _CategoryButton extends StatelessWidget {
             color: AppTheme.surface,
             border: Border.all(color: AppTheme.orangePrimary),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -260,7 +240,7 @@ class _CategoryButton extends StatelessWidget {
                   style: const TextStyle(
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 13,
+                    fontSize: 12,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
