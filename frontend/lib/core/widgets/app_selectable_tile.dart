@@ -47,11 +47,16 @@ class AppSelectableTile extends StatelessWidget {
             border: Border.all(color: borderColor),
           ),
           child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 12,
+                ),
               ),
             ),
           ),

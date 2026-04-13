@@ -6,6 +6,7 @@ import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/features/booking/booked_facility_screen.dart';
 import 'package:frontend/features/booking/models/booked_facility_details.dart';
 import 'package:frontend/features/booking/widgets/time_slot_item.dart';
+import 'package:frontend/features/booking/widgets/duration_stepper.dart';
 
 class BookingScreen extends StatefulWidget {
   final String facilityName;
@@ -19,7 +20,7 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   int selectedDayIndex = 0;
   String? selectedTime;
-  int selectedDuration = 60;
+  int selectedDuration = 30;
 
   final List<(String, String)> bookingDays = const [
     ('MON', '24'),
@@ -46,17 +47,48 @@ class _BookingScreenState extends State<BookingScreen> {
     '04:00 PM',
   };
 
-  final List<int> durations = const [30, 60, 90];
+  bool _canAccommodateDuration(String startTime, int duration) {
+    final slotIndex = timeSlots.indexOf(startTime);
+    if (slotIndex == -1) return false;
+
+    final slotsNeeded = duration ~/ 30;
+    if (slotIndex + slotsNeeded > timeSlots.length) return false;
+
+    for (var i = 0; i < slotsNeeded; i++) {
+      if (unavailableSlots.contains(timeSlots[slotIndex + i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _getEndTime(String startTime, int durationMinutes) {
+    final timeParts = startTime.split(' ');
+    final time = timeParts[0];
+    final period = timeParts[1];
+
+    final timeParts2 = time.split(':');
+    var hour = int.parse(timeParts2[0]);
+    final minute = int.parse(timeParts2[1]);
+
+    if (period == 'PM' && hour != 12) hour += 12;
+    if (period == 'AM' && hour == 12) hour = 0;
+
+    final start = DateTime(2024, 1, 1, hour, minute);
+    final end = start.add(Duration(minutes: durationMinutes));
+
+    final endHour = end.hour;
+    final endPeriod = endHour >= 12 ? 'PM' : 'AM';
+    final displayEndHour = endHour > 12
+        ? endHour - 12
+        : (endHour == 0 ? 12 : endHour);
+
+    return '$displayEndHour:${end.minute.toString().padLeft(2, '0')} $endPeriod';
+  }
 
   double get _subtotal {
-    switch (selectedDuration) {
-      case 30:
-        return 18;
-      case 90:
-        return 46;
-      default:
-        return 32;
-    }
+    final ratePerHour = 32.0;
+    return (selectedDuration / 60) * ratePerHour;
   }
 
   Future<void> _openBookedFacilityScreen() async {
@@ -129,17 +161,17 @@ class _BookingScreenState extends State<BookingScreen> {
                   day: day,
                   date: date,
                   isSelected: selectedDayIndex == index,
-                    onTap: () {
-                      setState(() {
-                        selectedDayIndex = index;
-                      });
-                      AppFeedback.pulseMessage(
-                        context,
-                        message: 'Day set to $day $date.',
-                        icon: Icons.calendar_today_outlined,
-                      );
-                    },
-                  );
+                  onTap: () {
+                    setState(() {
+                      selectedDayIndex = index;
+                    });
+                    AppFeedback.pulseMessage(
+                      context,
+                      message: 'Day set to $day $date.',
+                      icon: Icons.calendar_today_outlined,
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -153,37 +185,22 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 48,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: durations.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final duration = durations[index];
-
-                return SizedBox(
-                  width: 112,
-                  child: AppSelectableTile(
-                    label: '$duration MIN',
-                    isSelected: selectedDuration == duration,
-                    onTap: () {
-                      setState(() {
-                        selectedDuration = duration;
-                      });
-                      AppFeedback.pulseMessage(
-                        context,
-                        message: '$duration minute session selected.',
-                        icon: Icons.timelapse_outlined,
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+          DurationStepper(
+            duration: selectedDuration,
+            onChanged: (newDuration) {
+              setState(() {
+                selectedDuration = newDuration;
+                selectedTime = null;
+              });
+              AppFeedback.pulseMessage(
+                context,
+                message: '$newDuration minute session selected.',
+                icon: Icons.timelapse_outlined,
+              );
+            },
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Available Slots',
             style: TextStyle(
               color: AppTheme.textPrimary,
@@ -192,35 +209,44 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 2.5,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemCount: timeSlots.length,
-            itemBuilder: (context, index) {
-              final time = timeSlots[index];
-              final isAvailable = !unavailableSlots.contains(time);
-              return TimeSlotItem(
-                time: time,
-                isSelected: isAvailable && selectedTime == time,
-                isAvailable: isAvailable,
-                onTap: () {
-                  if (!isAvailable) {
-                    return;
-                  }
+          Builder(
+            builder: (context) {
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 2.8,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: timeSlots.length,
+                itemBuilder: (context, index) {
+                  final time = timeSlots[index];
+                  final canAccommodate = _canAccommodateDuration(
+                    time,
+                    selectedDuration,
+                  );
+                  final endTime = _getEndTime(time, selectedDuration);
+                  final displayText = canAccommodate
+                      ? '$time - $endTime'
+                      : '$time\n(Unavailable)';
 
-                  setState(() {
-                    selectedTime = time;
-                  });
-                  AppFeedback.pulseMessage(
-                    context,
-                    message: '$time locked in.',
-                    icon: Icons.schedule,
+                  return TimeSlotItem(
+                    time: displayText,
+                    isSelected: canAccommodate && selectedTime == time,
+                    isAvailable: canAccommodate,
+                    onTap: () {
+                      if (!canAccommodate) return;
+                      setState(() {
+                        selectedTime = time;
+                      });
+                      AppFeedback.pulseMessage(
+                        context,
+                        message: '$time locked in.',
+                        icon: Icons.schedule,
+                      );
+                    },
                   );
                 },
               );

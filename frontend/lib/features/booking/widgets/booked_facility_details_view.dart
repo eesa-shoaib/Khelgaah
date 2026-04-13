@@ -15,89 +15,92 @@ class BookedFacilityDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        BookingSummaryCard(
-          title: details.facilityName,
-          subtitle: details.scheduleLabel,
-          meta:
-              '${details.paymentStatusLabel}  |  BOOKING ID ${details.bookingId}',
-        ),
-        const SizedBox(height: 20),
-        _StatusStrip(
-          status: details.reservationStateLabel,
-          paymentStatus: details.paymentStatusLabel,
-          accentColor: details.paymentStatusColor,
-        ),
-        const SizedBox(height: 20),
-        _SectionCard(
-          title: 'Payment',
-          child: Column(
-            children: [
-              _DetailRow(
-                label: 'Facility charge',
-                value: '\$${details.subtotal.toStringAsFixed(2)}',
-              ),
-              _DetailRow(
-                label: 'Service fee',
-                value: '\$${details.serviceFee.toStringAsFixed(2)}',
-              ),
-              const Divider(color: AppTheme.divider, height: 24),
-              _DetailRow(
-                label: 'Total',
-                value: '\$${details.total.toStringAsFixed(2)}',
-                highlight: true,
-              ),
-            ],
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        children: [
+          BookingSummaryCard(
+            title: details.facilityName,
+            subtitle: details.scheduleLabel,
+            meta:
+                '${details.paymentStatusLabel}  |  BOOKING ID ${details.bookingId}',
           ),
-        ),
-        const SizedBox(height: 16),
-        _SectionCard(
-          title: 'Access',
-          child: Column(
-            children: [
-              const _DetailRow(
-                label: 'Entry',
-                value: 'Show booking ID at desk',
-              ),
-              const _DetailRow(
-                label: 'Arrival',
-                value: 'Arrive 10 minutes before the slot',
-              ),
-              _DetailRow(label: 'Note', value: details.accessNote),
-            ],
+          const SizedBox(height: 20),
+          _StatusStrip(
+            status: details.reservationStateLabel,
+            paymentStatus: details.paymentStatusLabel,
+            accentColor: details.paymentStatusColor,
           ),
-        ),
-        const SizedBox(height: 16),
-        _SectionCard(
-          title: 'Policies',
-          child: Column(
-            children: const [
-              _DetailRow(
-                label: 'Reschedule',
-                value: 'Allowed until 2 hours before start time',
-              ),
-              _DetailRow(
-                label: 'Cancellation',
-                value: 'Credit is returned to wallet after review',
-              ),
-              _DetailRow(
-                label: 'Equipment',
-                value: 'Bring your own gear unless stated otherwise',
-              ),
-            ],
+          const SizedBox(height: 20),
+          _SectionCard(
+            title: 'Payment',
+            child: Column(
+              children: [
+                _DetailRow(
+                  label: 'Facility charge',
+                  value: '\$${details.subtotal.toStringAsFixed(2)}',
+                ),
+                _DetailRow(
+                  label: 'Service fee',
+                  value: '\$${details.serviceFee.toStringAsFixed(2)}',
+                ),
+                const Divider(color: AppTheme.divider, height: 24),
+                _DetailRow(
+                  label: 'Total',
+                  value: '\$${details.total.toStringAsFixed(2)}',
+                  highlight: true,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        ParallelogramButton(
-          text: details.isPaid ? 'Payment Received' : 'Pay Now',
-          onPressed: details.isPaid ? () {} : (onPayNow ?? () {}),
-          fullWidth: true,
-          icon: details.isPaid ? Icons.check : Icons.payment,
-          enabled: !details.isPaid && onPayNow != null,
-        ),
-      ],
+          const SizedBox(height: 16),
+          _SectionCard(
+            title: 'Access',
+            child: Column(
+              children: [
+                const _DetailRow(
+                  label: 'Entry',
+                  value: 'Show booking ID at desk',
+                ),
+                const _DetailRow(
+                  label: 'Arrival',
+                  value: 'Arrive 10 minutes before the slot',
+                ),
+                _DetailRow(label: 'Note', value: details.accessNote),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _SectionCard(
+            title: 'Policies',
+            child: Column(
+              children: const [
+                _DetailRow(
+                  label: 'Reschedule',
+                  value: 'Allowed until 2 hours before start time',
+                ),
+                _DetailRow(
+                  label: 'Cancellation',
+                  value: 'Credit is returned to wallet after review',
+                ),
+                _DetailRow(
+                  label: 'Equipment',
+                  value: 'Bring your own gear unless stated otherwise',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          ParallelogramButton(
+            text: details.isPaid ? 'Payment Received' : 'Pay Now',
+            onPressed: details.isPaid ? () {} : (onPayNow ?? () {}),
+            fullWidth: true,
+            icon: details.isPaid ? Icons.check : Icons.payment,
+            enabled: !details.isPaid && onPayNow != null,
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }

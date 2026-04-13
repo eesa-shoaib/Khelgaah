@@ -7,6 +7,7 @@ import 'package:frontend/features/booking/models/booked_facility_details.dart';
 import 'package:frontend/features/search/search_screen.dart';
 import '../booking/booking_screen.dart';
 import 'widgets/facility_card.dart';
+import 'category_facilities_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final BookedFacilityDetails? latestBooking;
@@ -18,12 +19,75 @@ class HomeScreen extends StatelessWidget {
     required this.onBookingUpdated,
   });
 
-  final List<String> facilities = const [
-    'Tennis Court',
-    'Swimming Pool',
-    'Gym',
+  static const List<String> categories = [
+    'Football',
+    'Tennis',
+    'Padel',
     'Badminton',
+    'Cricket',
   ];
+
+  static const Map<String, List<(String, double)>> categoryFacilities = {
+    'Football': [
+      ('Elite Turf Arena', 4.8),
+      ('City Kickers Hub', 4.1),
+      ('Goal Master Fields', 4.5),
+    ],
+    'Tennis': [
+      ('Rally Court Club', 4.6),
+      ('Ace Tennis Center', 4.3),
+      ('Serve & Volley Arena', 4.7),
+    ],
+    'Padel': [
+      ('Smash Padel Club', 4.5),
+      ('The Glass Court', 4.9),
+      ('Padel Pro Arena', 4.4),
+    ],
+    'Badminton': [
+      ('Shuttle Star Hub', 4.6),
+      ('Smash Zone Arena', 4.2),
+      ('Badminton Bay', 4.7),
+    ],
+    'Cricket': [
+      ('Cricket Nexus', 4.5),
+      ('Pitch Perfect Arena', 4.3),
+      ('Bat & Ball Club', 4.6),
+    ],
+  };
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'football':
+        return Icons.sports_soccer;
+      case 'tennis':
+        return Icons.sports_tennis;
+      case 'padel':
+        return Icons.sports_handball;
+      case 'badminton':
+        return Icons.sports;
+      case 'cricket':
+        return Icons.sports_cricket;
+      default:
+        return Icons.sports;
+    }
+  }
+
+  Future<void> _openCategoryFacilities(
+    BuildContext context,
+    String category,
+  ) async {
+    final facilities = categoryFacilities[category] ?? [];
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CategoryFacilitiesScreen(
+          category: category,
+          facilities: facilities,
+          onBookingUpdated: onBookingUpdated,
+        ),
+      ),
+    );
+  }
 
   Future<void> _openBooking(BuildContext context, String facility) async {
     AppFeedback.haptic(AppFeedbackType.tap);
@@ -90,7 +154,33 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           const Text(
-            'Choose a facility',
+            'Choose a sport',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: categories.map((category) {
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    right: category != categories.last ? 10 : 0,
+                  ),
+                  child: _CategoryButton(
+                    label: category,
+                    icon: _getCategoryIcon(category),
+                    onTap: () => _openCategoryFacilities(context, category),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Recent',
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 20,
@@ -98,11 +188,13 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          for (final facility in facilities)
-            FacilityCard(
-              name: facility,
-              onTap: () => _openBooking(context, facility),
-            ),
+          for (final category in categories)
+            for (final (name, rating)
+                in (categoryFacilities[category] ?? []).take(1))
+              FacilityCard(
+                name: '$name (${rating.toStringAsFixed(1)} ★)',
+                onTap: () => _openBooking(context, name),
+              ),
           const SizedBox(height: 16),
           ParallelogramButton(
             text: 'Open Search',
@@ -125,6 +217,57 @@ class HomeScreen extends StatelessWidget {
             variant: ParallelogramButtonVariant.surface,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CategoryButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _CategoryButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          AppFeedback.haptic(AppFeedbackType.tap);
+          onTap();
+        },
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            border: Border.all(color: AppTheme.orangePrimary),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: AppTheme.orangePrimary, size: 18),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -17,14 +17,41 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<(String, String, String)> _facilities = const [
-    ('Tennis Court', 'Outdoor', '08 slots open'),
-    ('Swimming Pool', 'Indoor', '05 slots open'),
-    ('Gym', 'Strength', 'Walk-ins available'),
-    ('Badminton', 'Court', '06 slots open'),
-    ('Padel Arena', 'Outdoor', '03 slots open'),
-    ('Cricket Nets', 'Practice', '04 slots open'),
+  static const List<String> categories = [
+    'Football',
+    'Tennis',
+    'Padel',
+    'Badminton',
+    'Cricket',
   ];
+
+  static const Map<String, List<(String, double)>> categoryFacilities = {
+    'Football': [
+      ('Elite Turf Arena', 4.8),
+      ('City Kickers Hub', 4.1),
+      ('Goal Master Fields', 4.5),
+    ],
+    'Tennis': [
+      ('Rally Court Club', 4.6),
+      ('Ace Tennis Center', 4.3),
+      ('Serve & Volley Arena', 4.7),
+    ],
+    'Padel': [
+      ('Smash Padel Club', 4.5),
+      ('The Glass Court', 4.9),
+      ('Padel Pro Arena', 4.4),
+    ],
+    'Badminton': [
+      ('Shuttle Star Hub', 4.6),
+      ('Smash Zone Arena', 4.2),
+      ('Badminton Bay', 4.7),
+    ],
+    'Cricket': [
+      ('Cricket Nexus', 4.5),
+      ('Pitch Perfect Arena', 4.3),
+      ('Bat & Ball Club', 4.6),
+    ],
+  };
 
   String _query = '';
 
@@ -36,11 +63,29 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final results = _facilities.where((facility) {
-      final searchSpace = '${facility.$1} ${facility.$2} ${facility.$3}'
-          .toLowerCase();
-      return searchSpace.contains(_query.toLowerCase());
-    }).toList();
+    final matchingCategories = _query.isEmpty
+        ? categories
+        : categories
+              .where((c) => c.toLowerCase().contains(_query.toLowerCase()))
+              .toList();
+
+    final allFacilities = <(String, String, double)>[];
+    for (final category in matchingCategories) {
+      final facilities = categoryFacilities[category] ?? [];
+      for (final (name, rating) in facilities) {
+        allFacilities.add((name, category, rating));
+      }
+    }
+
+    final filteredFacilities = _query.isEmpty
+        ? allFacilities
+        : allFacilities
+              .where(
+                (f) =>
+                    f.$1.toLowerCase().contains(_query.toLowerCase()) ||
+                    f.$2.toLowerCase().contains(_query.toLowerCase()),
+              )
+              .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -101,16 +146,17 @@ class _SearchScreenState extends State<SearchScreen> {
                 meta: 'LIVE SEARCH INDEX',
               ),
             if (_query.isEmpty) const SizedBox(height: 14),
-            if (results.isEmpty)
+            if (filteredFacilities.isEmpty)
               const BookingSummaryCard(
                 title: 'No matches found',
                 subtitle:
                     'Try broader terms like court, pool, or gym to explore available facilities.',
                 meta: 'SEARCH EMPTY STATE',
               ),
-            for (final facility in results)
+            for (final facility in filteredFacilities)
               AppActionTile(
-                title: '${facility.$1}  •  ${facility.$2}',
+                title:
+                    '${facility.$1}  •  ${facility.$2}  (${facility.$3.toStringAsFixed(1)} ★)',
                 trailingIcon: Icons.arrow_forward_ios_sharp,
                 onTap: () {
                   AppFeedback.haptic(AppFeedbackType.tap);
