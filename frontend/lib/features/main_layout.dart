@@ -145,29 +145,70 @@ class _MainLayoutState extends State<MainLayout> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        decoration: BoxDecoration(
-          color: AppTheme.surface.withValues(alpha: 0.94),
-          border: Border.all(color: AppTheme.orangePrimary.withValues(alpha: 0.2)),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          type: BottomNavigationBarType.fixed,
-          enableFeedback: false,
-          backgroundColor: Colors.transparent,
-          onTap: _handleNavTap,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bookmark_outline),
-              activeIcon: Icon(Icons.bookmark),
-              label: "Bookings",
+      bottomNavigationBar: ClipPath(
+        clipper: _NavBarClipper(),
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          decoration: BoxDecoration(
+            color: AppTheme.surface.withValues(alpha: 0.94),
+            border: Border.all(
+              color: AppTheme.orangePrimary.withValues(alpha: 0.2),
             ),
-          ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            type: BottomNavigationBarType.fixed,
+            enableFeedback: false,
+            backgroundColor: Colors.transparent,
+            onTap: _handleNavTap,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.search),
+                label: "Search",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.bookmark_outline),
+                activeIcon: Icon(Icons.bookmark),
+                label: "Bookings",
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// Clipper for pointed left and right boundaries on navigation bar
+class _NavBarClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    const pointSize = 15.0; // Adjust this to make points bigger/smaller
+
+    // Start from top-left after the point
+    path.moveTo(pointSize, 0);
+
+    // Top line to top-right
+    path.lineTo(size.width - pointSize, 0);
+
+    // Right point
+    path.lineTo(size.width, size.height / 2);
+
+    // Bottom-right to bottom-left
+    path.lineTo(size.width - pointSize, size.height);
+    path.lineTo(pointSize, size.height);
+
+    // Left point
+    path.lineTo(0, size.height / 2);
+
+    // Close the path
+    path.close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

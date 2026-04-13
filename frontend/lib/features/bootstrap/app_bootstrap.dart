@@ -31,7 +31,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
       await preferences.setBool(_firstLaunchKey, true);
     }
 
-    return !hasSeenLoading;
+    return true; // Always show loading for testing
   }
 
   @override
@@ -40,9 +40,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
       future: _shouldShowLoading,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox.expand(
-            child: ColoredBox(color: Colors.black),
-          );
+          return const SizedBox.expand(child: ColoredBox(color: Colors.black));
         }
 
         if (!snapshot.data!) {
