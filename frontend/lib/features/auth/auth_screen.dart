@@ -28,7 +28,7 @@ class _AuthScreenState extends State<AuthScreen> {
               const Text(
                 'BOOK YOUR GAME.',
                 style: TextStyle(
-                  color: AppTheme.orangeAccent,
+                  color: AppTheme.secondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.2,
@@ -40,7 +40,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ? 'Sign in and keep your schedule tight.'
                     : 'Create your account and claim your next slot.',
                 style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.onSurface,
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   height: 1.1,
@@ -77,8 +77,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface,
-                  border: Border.all(color: AppTheme.orangePrimary, width: 1.2),
+                  color: AppTheme.surfaceContainerLow,
+                  border: Border.all(color: AppTheme.primary, width: 1.2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

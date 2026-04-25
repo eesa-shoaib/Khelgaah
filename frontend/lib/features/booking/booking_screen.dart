@@ -142,7 +142,7 @@ class _BookingScreenState extends State<BookingScreen> {
           const Text(
             'Pick a day',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: AppTheme.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -179,7 +179,7 @@ class _BookingScreenState extends State<BookingScreen> {
           const Text(
             'Duration',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: AppTheme.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -203,7 +203,7 @@ class _BookingScreenState extends State<BookingScreen> {
           Text(
             'Available Slots',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: AppTheme.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),

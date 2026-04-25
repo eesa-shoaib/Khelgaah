@@ -34,20 +34,20 @@ class AppFeedback {
       ..showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: AppTheme.surface,
+          backgroundColor: AppTheme.surfaceContainer,
           duration: const Duration(milliseconds: 1400),
           shape: RoundedRectangleBorder(
-            side: const BorderSide(color: AppTheme.orangePrimary),
+            side: const BorderSide(color: AppTheme.primary),
             borderRadius: BorderRadius.zero,
           ),
           content: Row(
             children: [
-              Icon(icon, color: AppTheme.orangePrimary, size: 18),
+              Icon(icon, color: AppTheme.primary, size: 18),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   message,
-                  style: const TextStyle(color: AppTheme.textPrimary),
+                  style: const TextStyle(color: AppTheme.onSurface),
                 ),
               ),
             ],

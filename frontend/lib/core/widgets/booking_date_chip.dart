@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 
 class BookingDateChip extends StatelessWidget {
   final String day;
@@ -18,6 +17,8 @@ class BookingDateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -28,9 +29,9 @@ class BookingDateChip extends StatelessWidget {
         height: 56,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: colorScheme.surface,
           border: Border.all(
-            color: isSelected ? AppTheme.orangePrimary : AppTheme.textSecondary,
+            color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           ),
         ),
         child: Row(
@@ -40,10 +41,10 @@ class BookingDateChip extends StatelessWidget {
             Expanded(
               child: Text(
                 day,
-                style: TextStyle(
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: isSelected
-                      ? AppTheme.orangePrimary
-                      : AppTheme.textSecondary,
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -52,10 +53,8 @@ class BookingDateChip extends StatelessWidget {
             Text(
               date,
               textAlign: TextAlign.right,
-              style: TextStyle(
-                color: isSelected
-                    ? AppTheme.orangePrimary
-                    : AppTheme.textPrimary,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),

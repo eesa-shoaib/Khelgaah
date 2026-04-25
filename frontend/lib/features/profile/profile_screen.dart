@@ -19,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 10),
             const ProfileHeader(name: 'Eesa', email: 'eesa.shoaib@gmail.com'),
             const SizedBox(height: 10),
-            const Divider(color: AppTheme.divider),
+            const Divider(color: AppTheme.outlineVariant),
             ProfileMenuItem(
               icon: Icons.history,
               title: 'Booking History',

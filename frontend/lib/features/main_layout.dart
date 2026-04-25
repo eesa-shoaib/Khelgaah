@@ -117,7 +117,7 @@ class _MainLayoutState extends State<MainLayout> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppTheme.background, Color(0xFF18120E)],
+            colors: [AppTheme.surfaceContainerLow, Color(0xFF18120E)],
           ),
         ),
         child: Stack(
@@ -132,7 +132,7 @@ class _MainLayoutState extends State<MainLayout> {
                   height: 240,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppTheme.orangePrimary.withValues(alpha: 0.07),
+                    color: AppTheme.primary.withValues(alpha: 0.07),
                   ),
                 ),
               ),
@@ -150,10 +150,8 @@ class _MainLayoutState extends State<MainLayout> {
         child: Container(
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           decoration: BoxDecoration(
-            color: AppTheme.surface.withValues(alpha: 0.94),
-            border: Border.all(
-              color: AppTheme.orangePrimary.withValues(alpha: 0.2),
-            ),
+            color: AppTheme.surfaceContainerLow.withValues(alpha: 0.94),
+            border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
           ),
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,

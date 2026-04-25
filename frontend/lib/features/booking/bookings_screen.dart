@@ -76,13 +76,13 @@ class _HintCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.divider),
+        color: AppTheme.surfaceContainer,
+        border: Border.all(color: AppTheme.outlineVariant),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppTheme.orangePrimary),
+          Icon(icon, color: AppTheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -91,14 +91,14 @@ class _HintCard extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
-                  style: const TextStyle(color: AppTheme.textSecondary),
+                  style: const TextStyle(color: AppTheme.onSurfaceVariant),
                 ),
               ],
             ),

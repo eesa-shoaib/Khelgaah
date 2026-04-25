@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 
 class ArrowClipper extends CustomClipper<Path> {
   @override
@@ -42,9 +41,11 @@ class AppActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = isDestructive ? AppTheme.error : AppTheme.orangePrimary;
-    final titleColor = isDestructive ? AppTheme.error : AppTheme.textPrimary;
-    final borderColor = isDestructive ? AppTheme.error : AppTheme.orangePrimary;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final accentColor = isDestructive ? colorScheme.error : colorScheme.primary;
+    final titleColor = isDestructive ? colorScheme.error : colorScheme.onSurface;
+    final borderColor = isDestructive ? colorScheme.error : colorScheme.primary;
 
     return Padding(
       padding: margin,
@@ -56,7 +57,7 @@ class AppActionTile extends StatelessWidget {
           child: ClipPath(
             clipper: ArrowClipper(),
             child: Material(
-              color: AppTheme.surface,
+              color: colorScheme.surface,
               child: InkWell(
                 onTap: () {
                   HapticFeedback.lightImpact();
@@ -78,9 +79,8 @@ class AppActionTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           title,
-                          style: TextStyle(
+                          style: theme.textTheme.bodyLarge?.copyWith(
                             color: titleColor,
-                            fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

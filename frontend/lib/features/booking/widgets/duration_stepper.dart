@@ -23,8 +23,8 @@ class DurationStepper extends StatelessWidget {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.orangePrimary),
+        color: AppTheme.surfaceContainer,
+        border: Border.all(color: AppTheme.primary),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -35,7 +35,7 @@ class DurationStepper extends StatelessWidget {
             child: Text(
               '$duration MIN',
               style: const TextStyle(
-                color: AppTheme.textPrimary,
+                color: AppTheme.onSurface,
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
               ),
@@ -87,9 +87,7 @@ class _StepperButton extends StatelessWidget {
           height: 48,
           child: Icon(
             icon,
-            color: onTap != null
-                ? AppTheme.orangePrimary
-                : AppTheme.textSecondary,
+            color: onTap != null ? AppTheme.primary : AppTheme.onSurfaceVariant,
             size: 20,
           ),
         ),

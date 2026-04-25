@@ -39,11 +39,11 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                 colors: [
                   const Color(0xFF0A0A0A),
                   Color.lerp(
-                    AppTheme.background,
-                    AppTheme.redPrimary.withValues(alpha: 0.28),
+                    AppTheme.surfaceContainerLow,
+                    AppTheme.primaryContainer.withValues(alpha: 0.28),
                     glow,
                   )!,
-                  AppTheme.background,
+                  AppTheme.surfaceContainerLow,
                 ],
               ),
             ),
@@ -57,7 +57,7 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                     height: 220,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppTheme.orangePrimary.withValues(alpha: 0.09),
+                      color: AppTheme.primary.withValues(alpha: 0.09),
                     ),
                   ),
                 ),
@@ -68,7 +68,9 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                     height: 180,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppTheme.redGlow.withValues(alpha: 0.08),
+                      color: AppTheme.secondaryContainer.withValues(
+                        alpha: 0.08,
+                      ),
                     ),
                   ),
                 ),
@@ -88,7 +90,7 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                       const Text(
                         'LOCKING IN COURTS, LANES, AND YOUR NEXT SESSION.',
                         style: TextStyle(
-                          color: AppTheme.orangeAccent,
+                          color: AppTheme.secondary,
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.1,
@@ -98,7 +100,7 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                       const Text(
                         'Preparing the live booking floor.',
                         style: TextStyle(
-                          color: AppTheme.textPrimary,
+                          color: AppTheme.onSurface,
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
                           height: 1.05,
@@ -108,7 +110,7 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                       const Text(
                         'Availability, timings, and your shortcuts are being staged for the first launch.',
                         style: TextStyle(
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.onSurfaceVariant,
                           fontSize: 14,
                           height: 1.5,
                         ),
@@ -118,11 +120,11 @@ class _FirstLaunchLoadingScreenState extends State<FirstLaunchLoadingScreen>
                         borderRadius: BorderRadius.circular(0),
                         child: LinearProgressIndicator(
                           minHeight: 5,
-                          backgroundColor: AppTheme.surface,
+                          backgroundColor: AppTheme.surfaceContainerLow,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             Color.lerp(
-                              AppTheme.orangePrimary,
-                              AppTheme.orangeAccent,
+                              AppTheme.primary,
+                              AppTheme.secondary,
                               glow,
                             )!,
                           ),

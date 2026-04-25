@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frontend/core/theme/app_theme.dart';
-
 class AppSelectableTile extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -18,19 +16,21 @@ class AppSelectableTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final borderColor = isSelected
-        ? AppTheme.orangePrimary
+        ? colorScheme.primary
         : isAvailable
-        ? AppTheme.textSecondary
-        : AppTheme.error;
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.error;
     final backgroundColor = isSelected
-        ? AppTheme.orangePrimary
-        : AppTheme.surface;
+        ? colorScheme.primary
+        : colorScheme.surface;
     final textColor = isSelected
-        ? Colors.black
+        ? colorScheme.onPrimary
         : isAvailable
-        ? AppTheme.textPrimary
-        : AppTheme.error;
+        ? colorScheme.onSurface
+        : colorScheme.error;
 
     return Material(
       color: Colors.transparent,
@@ -52,7 +52,7 @@ class AppSelectableTile extends StatelessWidget {
               child: Text(
                 label,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: textColor,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 12,

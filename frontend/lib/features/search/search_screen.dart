@@ -98,7 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             const Text(
               'Search venues, activities, or open time windows.',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+              style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
             ),
             const SizedBox(height: 18),
             AppTextField(
@@ -123,7 +123,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 },
                 icon: const Icon(
                   Icons.close,
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.onSurfaceVariant,
                   size: 18,
                 ),
               ),
@@ -132,7 +132,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Text(
               _query.isEmpty ? 'Suggested results' : 'Search results',
               style: const TextStyle(
-                color: AppTheme.textPrimary,
+                color: AppTheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
-
 class AppLogo extends StatelessWidget {
   final double width;
   final TextAlign textAlign;
@@ -13,20 +11,21 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: width,
       child: Text(
         'KhelGaah',
         textAlign: textAlign,
-        style: const TextStyle(
-          color: AppTheme.orangePrimary,
+        style: TextStyle(
+          color: colorScheme.primary,
           fontSize: 42,
           fontWeight: FontWeight.w900,
           fontStyle: FontStyle.italic,
           letterSpacing: -1.5,
           shadows: [
             Shadow(
-              color: AppTheme.redPrimary,
+              color: colorScheme.primaryContainer,
               offset: Offset(-2, 2),
               blurRadius: 0,
             ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 
 class BookingSummaryCard extends StatelessWidget {
   final String title;
@@ -15,35 +14,38 @@ class BookingSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.orangePrimary, width: 1.2),
+        color: colorScheme.surface,
+        border: Border.all(color: colorScheme.primary, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 16,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 14),
           Text(
             meta,
-            style: const TextStyle(
-              color: AppTheme.orangeAccent,
-              fontSize: 12,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.tertiary,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.6,
             ),

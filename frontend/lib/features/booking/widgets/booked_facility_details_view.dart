@@ -44,7 +44,7 @@ class BookedFacilityDetailsView extends StatelessWidget {
                   label: 'Service fee',
                   value: '\$${details.serviceFee.toStringAsFixed(2)}',
                 ),
-                const Divider(color: AppTheme.divider, height: 24),
+                const Divider(color: AppTheme.outlineVariant, height: 24),
                 _DetailRow(
                   label: 'Total',
                   value: '\$${details.total.toStringAsFixed(2)}',
@@ -121,7 +121,7 @@ class _StatusStrip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.surfaceContainer,
         border: Border.all(color: accentColor, width: 1.2),
       ),
       child: Row(
@@ -135,7 +135,7 @@ class _StatusStrip extends StatelessWidget {
                 Text(
                   status,
                   style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -143,7 +143,7 @@ class _StatusStrip extends StatelessWidget {
                 Text(
                   paymentStatus,
                   style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
@@ -167,8 +167,8 @@ class _SectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.divider, width: 1),
+        color: AppTheme.surfaceContainer,
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +176,7 @@ class _SectionCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: AppTheme.textPrimary,
+              color: AppTheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -203,7 +203,7 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final valueStyle = TextStyle(
-      color: highlight ? AppTheme.orangeAccent : AppTheme.textPrimary,
+      color: highlight ? AppTheme.secondary : AppTheme.onSurface,
       fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
     );
 
@@ -216,7 +216,7 @@ class _DetailRow extends StatelessWidget {
             child: Text(
               label,
               style: const TextStyle(
-                color: AppTheme.textSecondary,
+                color: AppTheme.onSurfaceVariant,
                 fontSize: 13,
               ),
             ),

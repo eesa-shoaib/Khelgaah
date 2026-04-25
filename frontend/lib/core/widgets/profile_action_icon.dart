@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/profile/profile_screen.dart';
 
 class ProfileActionIcon extends StatelessWidget {
@@ -16,7 +15,10 @@ class ProfileActionIcon extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const ProfileScreen()),
         );
       },
-      icon: const Icon(Icons.person_outline, color: AppTheme.orangePrimary),
+      icon: Icon(
+        Icons.person_outline,
+        color: Theme.of(context).colorScheme.primary,
+      ),
     );
   }
 }

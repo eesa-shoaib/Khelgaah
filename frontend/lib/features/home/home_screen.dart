@@ -133,7 +133,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           const Text(
             'Book your next session without the clutter.',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            style: TextStyle(color: AppTheme.onSurfaceVariant, fontSize: 14),
           ),
           const SizedBox(height: 16),
           GestureDetector(
@@ -154,7 +154,7 @@ class HomeScreen extends StatelessWidget {
           const Text(
             'Choose a sport',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: AppTheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
@@ -180,7 +180,7 @@ class HomeScreen extends StatelessWidget {
           const Text(
             'Recent',
             style: TextStyle(
-              color: AppTheme.textPrimary,
+              color: AppTheme.onSurface,
               fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
@@ -223,20 +223,20 @@ class _CategoryButton extends StatelessWidget {
         },
         child: Ink(
           decoration: BoxDecoration(
-            color: AppTheme.surface,
-            border: Border.all(color: AppTheme.orangePrimary),
+            color: AppTheme.surfaceContainer,
+            border: Border.all(color: AppTheme.primary),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: AppTheme.orangePrimary, size: 18),
+              Icon(icon, color: AppTheme.primary, size: 18),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                  color: AppTheme.onSurface,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),

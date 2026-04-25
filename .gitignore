@@ -5,6 +5,7 @@
 .DS_Store
 .idea/
 .vscode/
+.codex/
 
 # Flutter / Dart
 frontend/.dart_tool/

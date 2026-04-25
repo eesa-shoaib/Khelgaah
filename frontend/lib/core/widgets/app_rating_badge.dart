@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 
 class AppRatingBadge extends StatelessWidget {
   final double rating;
@@ -8,21 +7,22 @@ class AppRatingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: AppTheme.orangePrimary.withValues(alpha: 0.15),
-        border: Border.all(color: AppTheme.orangePrimary),
+        color: colorScheme.primary.withValues(alpha: 0.15),
+        border: Border.all(color: colorScheme.primary),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star, color: AppTheme.orangeAccent, size: 12),
+          Icon(Icons.star, color: colorScheme.tertiary, size: 12),
           const SizedBox(width: 3),
           Text(
             rating.toStringAsFixed(1),
-            style: const TextStyle(
-              color: AppTheme.orangeAccent,
+            style: TextStyle(
+              color: colorScheme.tertiary,
               fontWeight: FontWeight.w700,
               fontSize: 11,
             ),

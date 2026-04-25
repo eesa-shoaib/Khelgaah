@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 
 enum ParallelogramButtonVariant { primary, secondary, surface, destructive }
 
@@ -26,8 +25,8 @@ class ParallelogramButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = _backgroundColor;
-    final foregroundColor = _foregroundColor;
+    final backgroundColor = _backgroundColor(context);
+    final foregroundColor = _foregroundColor(context);
 
     return GestureDetector(
       onTap: enabled
@@ -64,35 +63,39 @@ class ParallelogramButton extends StatelessWidget {
     );
   }
 
-  Color get _backgroundColor {
+  Color _backgroundColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (!enabled) {
-      return AppTheme.surface;
+      return colorScheme.surfaceContainerHigh;
     }
 
     switch (variant) {
       case ParallelogramButtonVariant.primary:
-        return AppTheme.orangePrimary;
+        return colorScheme.primary;
       case ParallelogramButtonVariant.secondary:
-        return AppTheme.orangeAccent;
+        return colorScheme.tertiary;
       case ParallelogramButtonVariant.surface:
-        return AppTheme.surface;
+        return colorScheme.surface;
       case ParallelogramButtonVariant.destructive:
-        return AppTheme.error;
+        return colorScheme.error;
     }
   }
 
-  Color get _foregroundColor {
+  Color _foregroundColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (!enabled) {
-      return AppTheme.textSecondary;
+      return colorScheme.onSurfaceVariant;
     }
 
     switch (variant) {
       case ParallelogramButtonVariant.primary:
+        return colorScheme.onPrimary;
       case ParallelogramButtonVariant.secondary:
+        return colorScheme.onTertiary;
       case ParallelogramButtonVariant.destructive:
-        return Colors.black;
+        return colorScheme.onError;
       case ParallelogramButtonVariant.surface:
-        return AppTheme.textPrimary;
+        return colorScheme.onSurface;
     }
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 
 class AppTextField extends StatelessWidget {
   final String label;
@@ -23,14 +22,14 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 13,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -40,21 +39,10 @@ class AppTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           onChanged: onChanged,
-          style: const TextStyle(color: AppTheme.textPrimary),
+          style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: const TextStyle(color: AppTheme.textSecondary),
-            filled: true,
-            fillColor: AppTheme.surface,
             suffixIcon: suffixIcon,
-            enabledBorder: const OutlineInputBorder(
-              borderRadius: BorderRadius.zero,
-              borderSide: BorderSide(color: AppTheme.orangePrimary, width: 1.2),
-            ),
-            focusedBorder: const OutlineInputBorder(
-              borderRadius: BorderRadius.zero,
-              borderSide: BorderSide(color: AppTheme.orangeAccent, width: 1.4),
-            ),
           ),
         ),
       ],
