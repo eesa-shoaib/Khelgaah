@@ -20,8 +20,9 @@ func NewRepository(db *pgxpool.Pool) Repository {
 
 func (r *repository) List(ctx context.Context) ([]Venue, error) {
 	query := `
-		SELECT id, name, city, address, latitude, longitude
+		SELECT id, owner_user_id, name, city, address, latitude, longitude, approval_status
 		FROM venues
+		WHERE approval_status = 'approved'
 		ORDER BY name
 	`
 	rows, err := r.db.Query(ctx, query)
@@ -33,7 +34,7 @@ func (r *repository) List(ctx context.Context) ([]Venue, error) {
 	var venues []Venue
 	for rows.Next() {
 		var venue Venue
-		if err := rows.Scan(&venue.ID, &venue.Name, &venue.City, &venue.Address, &venue.Latitude, &venue.Longitude); err != nil {
+		if err := rows.Scan(&venue.ID, &venue.OwnerUserID, &venue.Name, &venue.City, &venue.Address, &venue.Latitude, &venue.Longitude, &venue.ApprovalStatus); err != nil {
 			return nil, err
 		}
 		venues = append(venues, venue)

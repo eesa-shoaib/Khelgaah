@@ -14,6 +14,7 @@ import (
 
 var ErrSlotUnavailable = errors.New("selected slot is no longer available")
 var ErrInvalidBooking = errors.New("invalid booking input")
+var ErrBookingNotFound = errors.New("booking not found")
 
 type Service struct {
 	db               *pgxpool.Pool
@@ -74,4 +75,12 @@ func (s *Service) Create(ctx context.Context, userID int64, input CreateBookingI
 
 func (s *Service) ListByUser(ctx context.Context, userID int64) ([]Booking, error) {
 	return s.repo.ListByUser(ctx, userID)
+}
+
+func (s *Service) Cancel(ctx context.Context, bookingID, userID int64) (Booking, error) {
+	if bookingID <= 0 {
+		return Booking{}, fmt.Errorf("%w: booking id must be positive", ErrInvalidBooking)
+	}
+
+	return s.repo.Cancel(ctx, bookingID, userID)
 }

@@ -55,12 +55,14 @@ class AppController extends ChangeNotifier {
     required String email,
     required String password,
     required String phone,
+    required String role,
   }) async {
     final result = await _apiClient.signUp(
       fullName: fullName,
       email: email,
       password: password,
       phone: phone,
+      role: role,
     );
     await _setSession(result);
   }

@@ -48,8 +48,16 @@ func (r *repository) ListSlots(ctx context.Context, facilityID int64, day time.T
 				SELECT 1
 				FROM bookings b
 				WHERE b.facility_id = $1
-				  AND b.status = 'confirmed'
+				  AND b.status IN ('pending', 'confirmed', 'completed')
 				  AND tstzrange(b.start_time, b.end_time, '[)') && tstzrange(cs.start_time, cs.start_time + make_interval(mins => $3), '[)')
+			)
+			AND NOT EXISTS (
+				SELECT 1
+				FROM time_slots ts
+				WHERE ts.facility_id = $1
+				  AND ts.slot_type = 'blocked'
+				  AND ts.status = 'active'
+				  AND tstzrange(ts.starts_at, ts.ends_at, '[)') && tstzrange(cs.start_time, cs.start_time + make_interval(mins => $3), '[)')
 			) AS is_available
 		FROM candidate_slots cs
 		ORDER BY cs.start_time
@@ -79,8 +87,16 @@ func (r *repository) HasConflict(ctx context.Context, q Querier, facilityID int6
 			SELECT 1
 			FROM bookings
 			WHERE facility_id = $1
-			  AND status = 'confirmed'
+			  AND status IN ('pending', 'confirmed', 'completed')
 			  AND tstzrange(start_time, end_time, '[)') && tstzrange($2, $3, '[)')
+		)
+		OR EXISTS (
+			SELECT 1
+			FROM time_slots
+			WHERE facility_id = $1
+			  AND slot_type = 'blocked'
+			  AND status = 'active'
+			  AND tstzrange(starts_at, ends_at, '[)') && tstzrange($2, $3, '[)')
 		)
 	`
 

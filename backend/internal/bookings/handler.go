@@ -62,4 +62,34 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMiddleware middleware.M
 
 		httpx.WriteJSON(w, http.StatusOK, map[string]any{"bookings": items})
 	})))
+
+	mux.Handle("POST /api/v1/bookings/{id}/cancel", authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, ok := middleware.UserIDFromContext(r.Context())
+		if !ok {
+			httpx.WriteError(w, http.StatusUnauthorized, "missing user")
+			return
+		}
+
+		bookingID, err := httpx.ParseID(r, "id")
+		if err != nil {
+			httpx.WriteError(w, http.StatusBadRequest, "invalid booking id")
+			return
+		}
+
+		booking, err := h.service.Cancel(r.Context(), bookingID, userID)
+		if err != nil {
+			if errors.Is(err, ErrInvalidBooking) {
+				httpx.WriteError(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if errors.Is(err, ErrBookingNotFound) {
+				httpx.WriteError(w, http.StatusNotFound, err.Error())
+				return
+			}
+			httpx.WriteError(w, http.StatusInternalServerError, "failed to cancel booking")
+			return
+		}
+
+		httpx.WriteJSON(w, http.StatusOK, booking)
+	})))
 }

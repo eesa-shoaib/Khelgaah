@@ -16,10 +16,7 @@ class UserSession {
   final String token;
   final UserProfile user;
 
-  Map<String, dynamic> toJson() => {
-    'token': token,
-    'user': user.toJson(),
-  };
+  Map<String, dynamic> toJson() => {'token': token, 'user': user.toJson()};
 
   factory UserSession.fromJson(Map<String, dynamic> json) => UserSession(
     token: json['token'] as String,
@@ -45,18 +42,24 @@ class UserProfile {
     required this.fullName,
     required this.email,
     required this.phone,
+    required this.role,
+    required this.status,
   });
 
   final int id;
   final String fullName;
   final String email;
   final String phone;
+  final String role;
+  final String status;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
     id: json['id'] as int,
     fullName: json['full_name'] as String,
     email: json['email'] as String,
     phone: (json['phone'] as String?) ?? '',
+    role: (json['role'] as String?) ?? 'customer',
+    status: (json['status'] as String?) ?? 'active',
   );
 
   Map<String, dynamic> toJson() => {
@@ -64,6 +67,8 @@ class UserProfile {
     'full_name': fullName,
     'email': email,
     'phone': phone,
+    'role': role,
+    'status': status,
   };
 }
 

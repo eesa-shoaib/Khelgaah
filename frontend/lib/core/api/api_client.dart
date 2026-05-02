@@ -48,6 +48,7 @@ class ApiClient {
     required String email,
     required String password,
     required String phone,
+    required String role,
   }) async {
     final response = await _httpClient.post(
       _uri('/api/v1/auth/signup'),
@@ -57,6 +58,7 @@ class ApiClient {
         'email': email,
         'password': password,
         'phone': phone,
+        'role': role,
       }),
     );
     return _decodeSingle(response, AuthResponse.fromJson);

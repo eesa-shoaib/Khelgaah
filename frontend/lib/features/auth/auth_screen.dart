@@ -3,8 +3,8 @@ import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
+import 'package:frontend/core/utils/role_home.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/features/main_layout.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -19,6 +19,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
+  String _selectedRole = 'customer';
   bool _isSubmitting = false;
 
   @override
@@ -66,6 +67,7 @@ class _AuthScreenState extends State<AuthScreen> {
           email: email,
           password: password,
           phone: _phoneController.text.trim(),
+          role: _selectedRole,
         );
       }
 
@@ -74,9 +76,11 @@ class _AuthScreenState extends State<AuthScreen> {
       }
 
       AppFeedback.haptic(AppFeedbackType.success);
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainLayout()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => buildHomeForRole(controller.session!.user),
+        ),
+      );
     } on ApiException catch (error) {
       _showError(error.message);
     } catch (_) {
@@ -195,6 +199,16 @@ class _AuthScreenState extends State<AuthScreen> {
                         keyboardType: TextInputType.phone,
                         controller: _phoneController,
                       ),
+                      const SizedBox(height: 16),
+                      _RoleField(
+                        value: _selectedRole,
+                        onChanged: (value) {
+                          if (value == null) {
+                            return;
+                          }
+                          setState(() => _selectedRole = value);
+                        },
+                      ),
                     ],
                     const SizedBox(height: 20),
                     ParallelogramButton(
@@ -220,6 +234,43 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _RoleField extends StatelessWidget {
+  const _RoleField({required this.value, required this.onChanged});
+
+  final String value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Role',
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          dropdownColor: AppTheme.surfaceContainerHigh,
+          decoration: const InputDecoration(hintText: 'Select a role'),
+          items: const [
+            DropdownMenuItem(value: 'customer', child: Text('Customer')),
+            DropdownMenuItem(value: 'venue_owner', child: Text('Venue Owner')),
+            DropdownMenuItem(value: 'admin', child: Text('Admin')),
+          ],
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 }

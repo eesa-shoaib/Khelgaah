@@ -7,6 +7,7 @@ type SignupInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Phone    string `json:"phone"`
+	Role     string `json:"role"`
 }
 
 type LoginInput struct {
@@ -24,5 +25,7 @@ type AuthUserDTO struct {
 	FullName  string    `json:"full_name"`
 	Email     string    `json:"email"`
 	Phone     string    `json:"phone"`
+	Role      string    `json:"role"`
+	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 }

@@ -32,6 +32,7 @@ func (s *Service) Signup(ctx context.Context, input SignupInput) (AuthResult, er
 	fullName := strings.TrimSpace(input.FullName)
 	email := strings.TrimSpace(strings.ToLower(input.Email))
 	phone := strings.TrimSpace(input.Phone)
+	role := normalizeSignupRole(input.Role)
 
 	if fullName == "" {
 		return AuthResult{}, fmt.Errorf("%w: full_name is required", ErrInvalidSignup)
@@ -41,6 +42,12 @@ func (s *Service) Signup(ctx context.Context, input SignupInput) (AuthResult, er
 	}
 	if len(input.Password) < 8 {
 		return AuthResult{}, fmt.Errorf("%w: password must be at least 8 characters", ErrInvalidSignup)
+	}
+	if role == "admin" {
+		return AuthResult{}, fmt.Errorf("%w: admin signup is not allowed", ErrInvalidSignup)
+	}
+	if role != "customer" && role != "venue_owner" {
+		return AuthResult{}, fmt.Errorf("%w: unsupported role", ErrInvalidSignup)
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
@@ -53,6 +60,7 @@ func (s *Service) Signup(ctx context.Context, input SignupInput) (AuthResult, er
 		Email:        email,
 		PasswordHash: string(passwordHash),
 		Phone:        phone,
+		Role:         role,
 	})
 	if err != nil {
 		return AuthResult{}, err
@@ -68,6 +76,9 @@ func (s *Service) Login(ctx context.Context, input LoginInput) (AuthResult, erro
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password)) != nil {
+		return AuthResult{}, ErrInvalidCredentials
+	}
+	if user.Status != "active" {
 		return AuthResult{}, ErrInvalidCredentials
 	}
 
@@ -87,7 +98,17 @@ func (s *Service) newAuthResult(user users.User) (AuthResult, error) {
 			FullName:  user.FullName,
 			Email:     user.Email,
 			Phone:     user.Phone,
+			Role:      user.Role,
+			Status:    user.Status,
 			CreatedAt: user.CreatedAt,
 		},
 	}, nil
+}
+
+func normalizeSignupRole(raw string) string {
+	role := strings.TrimSpace(strings.ToLower(raw))
+	if role == "" {
+		return "customer"
+	}
+	return role
 }

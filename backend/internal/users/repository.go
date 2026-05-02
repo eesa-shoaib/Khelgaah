@@ -20,13 +20,24 @@ func NewRepository(db *pgxpool.Pool) Repository {
 
 func (r *repository) FindByID(ctx context.Context, id int64) (User, error) {
 	query := `
-		SELECT id, full_name, email, phone, password_hash, created_at
+		SELECT id, full_name, email, phone, role, status, password_hash, created_at, updated_at, suspended_at
 		FROM users
 		WHERE id = $1
 	`
 
 	var user User
 	err := r.db.QueryRow(ctx, query, id).
-		Scan(&user.ID, &user.FullName, &user.Email, &user.Phone, &user.PasswordHash, &user.CreatedAt)
+		Scan(
+			&user.ID,
+			&user.FullName,
+			&user.Email,
+			&user.Phone,
+			&user.Role,
+			&user.Status,
+			&user.PasswordHash,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.SuspendedAt,
+		)
 	return user, err
 }

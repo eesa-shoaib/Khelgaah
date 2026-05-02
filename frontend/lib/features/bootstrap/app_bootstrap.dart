@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/core/app_controller.dart';
+import 'package:frontend/core/utils/role_home.dart';
 import 'package:frontend/features/auth/auth_screen.dart';
-import 'package:frontend/features/main_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'first_launch_loading_screen.dart';
@@ -50,7 +50,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
 
         if (!snapshot.data!) {
           return _controller!.isAuthenticated
-              ? const MainLayout()
+              ? buildHomeForRole(_controller!.session!.user)
               : const AuthScreen();
         }
 
@@ -97,7 +97,7 @@ class _LaunchSequenceState extends State<_LaunchSequence> {
       switchOutCurve: Curves.easeInCubic,
       child: _showAuth
           ? (widget.controller.isAuthenticated
-                ? const MainLayout()
+                ? buildHomeForRole(widget.controller.session!.user)
                 : const AuthScreen())
           : const FirstLaunchLoadingScreen(),
     );

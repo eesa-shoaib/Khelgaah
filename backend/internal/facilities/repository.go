@@ -21,9 +21,10 @@ func NewRepository(db *pgxpool.Pool) Repository {
 
 func (r *repository) List(ctx context.Context, search string) ([]Facility, error) {
 	query := `
-		SELECT id, venue_id, name, sport, type, open_summary
+		SELECT id, venue_id, name, sport, type, open_summary, price_per_hour::text, status
 		FROM facilities
-		WHERE ($1 = '' OR LOWER(name) LIKE '%' || $1 || '%' OR LOWER(sport) LIKE '%' || $1 || '%' OR LOWER(type) LIKE '%' || $1 || '%')
+		WHERE status = 'active'
+		  AND ($1 = '' OR LOWER(name) LIKE '%' || $1 || '%' OR LOWER(sport) LIKE '%' || $1 || '%' OR LOWER(type) LIKE '%' || $1 || '%')
 		ORDER BY name
 	`
 	rows, err := r.db.Query(ctx, query, strings.ToLower(strings.TrimSpace(search)))
@@ -35,7 +36,7 @@ func (r *repository) List(ctx context.Context, search string) ([]Facility, error
 	var facilities []Facility
 	for rows.Next() {
 		var facility Facility
-		if err := rows.Scan(&facility.ID, &facility.VenueID, &facility.Name, &facility.Sport, &facility.Type, &facility.OpenSummary); err != nil {
+		if err := rows.Scan(&facility.ID, &facility.VenueID, &facility.Name, &facility.Sport, &facility.Type, &facility.OpenSummary, &facility.PricePerHour, &facility.Status); err != nil {
 			return nil, err
 		}
 		facilities = append(facilities, facility)
