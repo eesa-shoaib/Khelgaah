@@ -1,344 +1,128 @@
-I have a Flutter app "Khelgaah" for a facility booking system.
+I have a Flutter app "Khelgaah" for facility booking. I need minimal venue owner and admin screens.
 
-CURRENT STATE:
-- Existing Flutter screens and widgets in frontend/lib/
-- UI is already styled with app theme, colors, fonts
-- Existing widgets: app_logo.dart, app_action_tile.dart, app_text_field.dart, parallelogram_btn.dart, booking_summary_card.dart, etc.
-- Current screens: auth_screen.dart, home_screen.dart, booking_screen.dart, bookings_screen.dart, profile_screen.dart, search_screen.dart
+BACKEND READY:
+- Venue owner endpoints: /api/v1/venue-owner/venues, /bookings, /dashboard
+- Admin endpoints: /api/v1/admin/users, /venues, /bookings
+- JWT Bearer token auth working
 
-BACKEND IMPLEMENTED:
-- Role-based auth (customer, venue_owner, admin)
-- Venue owner endpoints: /api/v1/venue-owner/venues, /facilities, /time-slots, /bookings, /dashboard, /analytics
-- Admin endpoints: /api/v1/admin/users, /venues, /bookings, /payments, /dashboard, /analytics
-- JWT Bearer token authentication
+CURRENT APP:
+- Uses AppScope, AppController, ApiClient
+- Theme: app_theme.dart with colors/fonts
+- Widgets: parallelogram_btn.dart, app_action_tile.dart, etc.
+- Screens: auth_screen.dart, home_screen.dart, booking_screen.dart
 
 WHAT I NEED:
 
-### PART 1: UPDATE AUTH FLOW
-Update frontend/lib/features/auth/auth_screen.dart to:
-- Add role selection dropdown (customer, venue_owner, admin signup)
-- Redirect user to correct dashboard after login based on role:
-  - customer → home_screen (existing)
-  - venue_owner → venue_owner_dashboard
-  - admin → admin_dashboard
+## VENUE OWNER SCREENS (5 screens):
 
-### PART 2: CREATE VENUE OWNER SCREENS
+1. **venue_owner_dashboard.dart**
+   - Welcome message + user name
+   - 3 stat cards: Total Venues, Total Bookings, Pending Approvals
+   - Recent 5 bookings list
+   - Button: "View All Bookings"
 
-Create these screens in frontend/lib/features/venue_owner/:
+2. **venues_list_screen.dart**
+   - List of venues (name, city, facility count, status badge)
+   - FAB: Add new venue
+   - Actions per venue: View, Edit, Delete
+   - Empty state: "No venues yet"
 
-**1. venue_owner_dashboard.dart**
-- Display welcome message with venue owner name
-- Show stats cards: Total Bookings, Total Revenue, Occupancy Rate, Pending Approvals
-- Recent bookings list (latest 5)
-- Quick action buttons: Add Venue, View Bookings, Manage Availability
-- Use same card/tile styling as existing screens
+3. **venue_bookings_screen.dart**
+   - List all bookings for this venue owner
+   - Filter chips: All, Pending, Confirmed, Rejected
+   - Booking card: customer name, facility, date, time, status
+   - If pending: Approve/Reject buttons
+   - Tap to view details
 
-**2. venues_list_screen.dart**
-- List all venues owned by this user
-- Each venue card shows: venue name, city, number of facilities, status (pending/approved/suspended)
-- Add Venue button (FAB or top button)
-- Swipe/tap to delete or view details
-- Status badge (green for approved, yellow for pending)
+4. **booking_approval_screen.dart**
+   - Show booking details: customer, facility, date, time, amount
+   - Button: Approve (green)
+   - Button: Reject (red)
+   - Auto-close after action
 
-**3. venue_details_screen.dart**
-- Show venue info: name, address, city, latitude/longitude
-- Edit button to update venue details
-- List of facilities in this venue
-- Add Facility button
-- Delete venue button (with confirmation)
+5. **venue_owner_profile_screen.dart**
+   - Show: name, email, phone, role
+   - Button: Change Password
+   - Button: Logout
 
-**4. facilities_list_screen.dart**
-- List all facilities for a selected venue
-- Each facility card: name, capacity, price per hour, status
-- Add Facility button
-- Tap to edit facility details
-- Delete facility button
-- Upload facility image button
+## ADMIN SCREENS (5 screens):
 
-**5. facility_details_screen.dart**
-- Show facility: name, description, capacity, price, amenities
-- Edit facility button
-- Manage time slots button
-- View bookings for this facility button
-- Delete facility button
+1. **admin_dashboard.dart**
+   - 4 stat cards: Total Users, Total Venues, Total Bookings, Total Revenue
+   - Pending venues count
+   - Recent 5 activities list
+   - Button: "Approve Venues"
 
-**6. time_slots_management_screen.dart**
-- Calendar view showing available dates
-- For selected date: show time slots
-- Add new time slot button
-- Block date button (for maintenance)
-- Delete time slot button
-- Bulk upload time slots option
+2. **admin_users_screen.dart**
+   - List all users with filters: Role (customer/venue_owner), Status (active/suspended)
+   - User card: name, email, role, status
+   - Actions: View, Suspend/Activate, Delete
 
-**7. venue_owner_bookings_screen.dart**
-- List all bookings for venue owner's facilities
-- Filter by: status (pending, confirmed, rejected, cancelled), date range, facility
-- Each booking card: customer name, facility, date, time, status
-- Status badge (red=pending, green=confirmed, gray=rejected/cancelled)
-- Tap to view booking details
-- Approve/Reject buttons (if pending)
-- Cancel button (if confirmed)
-- View customer info button
+3. **admin_venues_screen.dart**
+   - List all venues with filters: Status (pending/approved/rejected)
+   - Venue card: name, city, owner, status badge
+   - If pending: Approve button, Reject button
+   - If approved: Suspend button
 
-**8. booking_details_screen.dart (for venue owner)**
-- Show full booking details: customer info, facility, date, time, notes
-- Payment info: total amount, payment status
-- Approve button (if pending)
-- Reject button (if pending)
-- Cancel button (if confirmed, with reason)
-- Notes section
+4. **admin_bookings_screen.dart**
+   - List all bookings system-wide
+   - Filter: Status (pending/confirmed/rejected/completed)
+   - Booking card: ID, customer, facility, date, status
+   - Actions: Cancel, Mark Complete
 
-**9. venue_owner_analytics_screen.dart**
-- Charts/graphs showing:
-  - Revenue over time (line chart)
-  - Bookings by facility (bar chart)
-  - Occupancy rate by facility
-  - Peak hours analysis
-- Date range filter
-- Export to PDF/Excel button (optional for MVP)
+5. **admin_profile_screen.dart**
+   - Show: name, email, phone
+   - Button: Change Password
+   - Button: Logout
 
-**10. venue_owner_profile_screen.dart**
-- Show owner details: name, email, phone
-- Edit profile button
-- Bank details section (for payments)
-- Change password button
-- Notification preferences
-- Logout button
+## NEW WIDGETS (create in frontend/lib/core/widgets/):
 
-### PART 3: CREATE ADMIN SCREENS
+1. **status_badge.dart** - Shows status with color (pending=yellow, confirmed=green, rejected=red, suspended=red)
+2. **stats_card.dart** - Shows stat: icon + value + label
+3. **filter_chips.dart** - Horizontal scrollable filter chips
 
-Create these screens in frontend/lib/features/admin/:
+## REQUIREMENTS:
 
-**1. admin_dashboard.dart**
-- Show system-wide stats: Total Users, Total Venues, Total Bookings, Total Revenue
-- Active users count, New venues (pending approval)
-- Charts: Revenue trend, Booking trend
-- Recent activities feed (latest 10 actions)
-- Quick action buttons: Approve Venues, Resolve Disputes, View Reports
+- Use existing app theme colors/fonts
+- Match existing widget styles
+- Use AppScope for controller/token
+- Use ApiClient for all API calls
+- Show user-friendly error messages
+- Simple loading states (CircularProgressIndicator)
+- Pull-to-refresh on list screens
+- Null safety throughout
+- Comments for complex logic
 
-**2. users_management_screen.dart**
-- List all users with filters: role (customer, venue_owner), status (active, suspended)
-- User card: name, email, role, status, join date
-- Status badge (green=active, red=suspended)
-- Tap to view user details
-- Suspend/activate button
-- Delete user button (with confirmation)
+## API ENDPOINTS TO CALL:
 
-**3. user_details_screen.dart**
-- Show user info: name, email, phone, role, status, join date
-- User's booking history (if customer)
-- User's venues (if venue owner)
-- Change role button
-- Suspend/activate button
-- Delete button
+**Venue Owner:**
+- GET /api/v1/venue-owner/dashboard
+- GET /api/v1/venue-owner/venues
+- GET /api/v1/venue-owner/bookings
+- PUT /api/v1/venue-owner/bookings/{id}/approve
+- PUT /api/v1/venue-owner/bookings/{id}/reject
+- GET /api/v1/venue-owner/profile
 
-**4. venues_approval_screen.dart**
-- List all venues with status: pending, approved, rejected, suspended
-- Filter by status
-- Each venue card: name, city, owner name, status, created date
-- Status badge colors: yellow=pending, green=approved, red=rejected, gray=suspended
-- Tap to view venue details
-- Approve button (if pending)
-- Reject button (if pending)
-- Suspend button (if approved)
+**Admin:**
+- GET /api/v1/admin/dashboard
+- GET /api/v1/admin/users
+- GET /api/v1/admin/venues
+- GET /api/v1/admin/bookings
+- PUT /api/v1/admin/venues/{id}/approve
+- PUT /api/v1/admin/venues/{id}/reject
+- PUT /api/v1/admin/bookings/{id}/cancel
+- GET /api/v1/admin/profile
 
-**5. venue_approval_details_screen.dart**
-- Show venue info: name, address, city, owner contact
-- Facilities list
-- Approve button (if pending)
-- Reject button (if pending) with reason text field
-- Suspend button with reason
+## OUTPUT FORMAT:
 
-**6. admin_bookings_screen.dart**
-- List ALL bookings system-wide
-- Filter by: status (pending, confirmed, rejected, cancelled, completed), date range, venue
-- Each booking card: booking ID, customer, facility, venue, date, status
-- Status badges with colors
-- Tap to view details
-- Cancel button (force cancel with reason)
-- Mark as completed button (if confirmed)
+For EACH screen, provide:
+1. Complete working code (copy-paste ready)
+2. All necessary imports
+3. No external dependencies beyond what's already used
 
-**7. booking_dispute_screen.dart**
-- Show booking details
-- Dispute reason text (if disputed)
-- Admin notes section
-- Options: Approve booking, Cancel with refund, Custom resolution
-- Process refund button
-- Notes text field
-- Submit button
+Deliver in this order:
+1. All 3 new widgets first
+2. All 5 venue owner screens
+3. All 5 admin screens
 
-**8. payments_management_screen.dart**
-- List all transactions
-- Filter by: status (pending, success, failed, refunded), date range
-- Each transaction: booking ID, amount, method, status, date
-- Status badges: green=success, red=failed, orange=refunded
-- Tap to view details
-- Process refund button
-- Generate receipt button
-
-**9. payment_details_screen.dart**
-- Show payment info: booking details, amount, method, status
-- Customer info
-- Refund section (if needed)
-- Refund reason text field
-- Process refund button
-
-**10. admin_analytics_screen.dart**
-- System-wide analytics:
-  - Revenue chart (line graph)
-  - Bookings chart (bar graph)
-  - Users growth chart
-  - Top venues by revenue
-  - User satisfaction metrics
-- Date range filter
-- Download reports button (CSV/PDF optional)
-
-**11. admin_profile_screen.dart**
-- Admin details: name, email, phone
-- Edit profile button
-- Change password button
-- Activity logs (last 20 actions by this admin)
-- Notification preferences
-- Logout button
-
-### PART 4: CREATE NEW REUSABLE WIDGETS
-Place all new widgets in frontend/lib/core/widgets/:
-
-**1. status_badge_widget.dart**
-- Display status with appropriate color/icon
-- Props: status (string), size (small, medium, large)
-- Colors: pending=yellow, confirmed=green, rejected=red, cancelled=gray, approved=green, suspended=red
-- Usage: `StatusBadge(status: 'confirmed')`
-
-**2. stats_card_widget.dart**
-- Display stat with icon, value, label
-- Props: icon, label, value, color
-- Usage: `StatsCard(icon: Icons.booking, label: 'Total Bookings', value: '45')`
-
-**3. filter_chips_widget.dart**
-- Horizontal scrollable filter chips
-- Props: filters (list), onSelected
-- Usage: For status filters, date filters
-
-**4. date_range_picker_widget.dart**
-- Pick date range (from date - to date)
-- Props: onDateRangeSelected
-- Usage: For analytics date range
-
-**5. booking_card_widget.dart**
-- Display booking summary
-- Props: booking object, showActions (bool), onApprove, onReject, onCancel
-- Usage: In booking lists
-
-**6. venue_card_widget.dart**
-- Display venue summary
-- Props: venue object, showActions (bool), onEdit, onDelete, onView
-- Usage: In venue lists
-
-**7. facility_card_widget.dart**
-- Display facility summary
-- Props: facility object, showActions (bool), onEdit, onDelete
-- Usage: In facility lists
-
-**8. user_card_widget.dart**
-- Display user summary
-- Props: user object, showActions (bool), onSuspend, onDelete, onView
-- Usage: In user management lists
-
-**9. chart_widget.dart**
-- Display line or bar chart
-- Props: type (line/bar), data, title
-- Use: fl_chart package
-- Usage: For analytics graphs
-
-**10. confirmation_dialog_widget.dart**
-- Reusable confirmation dialog
-- Props: title, message, onConfirm, onCancel
-- Usage: Before deleting/cancelling
-
-### PART 5: UPDATE APP ROUTING
-Update frontend/lib/app.dart or main.dart route definitions:
-- Add route for venue_owner_dashboard
-- Add route for admin_dashboard
-- Add all new screens as routes
-- Update navigation based on user role
-
-### PART 6: UPDATE AUTH SERVICE
-Update frontend/lib/core/services/ or relevant auth service:
-- Store user role in SharedPreferences
-- Implement role-based navigation after login
-- Add helper functions: isVenueOwner(), isAdmin(), isCustomer()
-
-### PART 7: API CLIENT
-Update HTTP client to include:
-- Base URLs for venue_owner endpoints: /api/v1/venue-owner/
-- Base URLs for admin endpoints: /api/v1/admin/
-- Bearer token in all requests
-
-### REQUIREMENTS:
-- Follow EXISTING app theme, colors, fonts, styling
-- Use Material Design 3
-- Consistent with existing screens (booking_screen.dart, home_screen.dart, etc.)
-- Dark mode support (if app supports it)
-- Responsive design (works on different screen sizes)
-- Error handling with user-friendly messages
-- Loading indicators for API calls
-- Empty state messages (no data found)
-- All new widgets in frontend/lib/core/widgets/
-- Comments explaining complex UI logic
-- Use null safety (?)
-- Proper state management (Provider, Riverpod, or GetX - whatever you use)
-
-### OUTPUT FORMAT:
-For each screen, provide:
-1. Screen dart file (complete code)
-2. Models/DTOs if needed
-3. API service calls used
-4. Any dependencies needed (add to pubspec.yaml)
-
-### EXAMPLE STRUCTURE:
-frontend/lib/
-├── core/
-│   └── widgets/
-│       ├── status_badge_widget.dart
-│       ├── stats_card_widget.dart
-│       ├── filter_chips_widget.dart
-│       ├── booking_card_widget.dart
-│       └── ... (all new widgets)
-├── features/
-│   ├── venue_owner/
-│   │   ├── venue_owner_dashboard.dart
-│   │   ├── venues_list_screen.dart
-│   │   ├── venue_details_screen.dart
-│   │   ├── facilities_list_screen.dart
-│   │   ├── facility_details_screen.dart
-│   │   ├── time_slots_management_screen.dart
-│   │   ├── venue_owner_bookings_screen.dart
-│   │   ├── booking_details_screen.dart
-│   │   ├── venue_owner_analytics_screen.dart
-│   │   └── venue_owner_profile_screen.dart
-│   ├── admin/
-│   │   ├── admin_dashboard.dart
-│   │   ├── users_management_screen.dart
-│   │   ├── user_details_screen.dart
-│   │   ├── venues_approval_screen.dart
-│   │   ├── venue_approval_details_screen.dart
-│   │   ├── admin_bookings_screen.dart
-│   │   ├── booking_dispute_screen.dart
-│   │   ├── payments_management_screen.dart
-│   │   ├── payment_details_screen.dart
-│   │   ├── admin_analytics_screen.dart
-│   │   └── admin_profile_screen.dart
-│   └── auth/
-│       └── auth_screen.dart (updated)
-### CONSISTENCY:
-- Use existing app colors (check app_theme.dart)
-- Use existing fonts and typography
-- Use existing widget patterns
-- Match button styles (parallelogram_btn.dart)
-- Match card styles (booking_summary_card.dart)
-- Match input styles (app_text_field.dart)
-- Same spacing/padding conventions
-- Same error/success message patterns
-
-Please provide COMPLETE, production-ready Flutter code that I can directly copy to my project.
+Keep code SIMPLE, READABLE, and WORKING.

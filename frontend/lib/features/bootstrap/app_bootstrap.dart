@@ -34,9 +34,10 @@ class _AppBootstrapState extends State<AppBootstrap> {
 
     if (!hasSeenLoading) {
       await preferences.setBool(_firstLaunchKey, true);
+      return true; // Show loading screen only on first launch
     }
 
-    return true; // Always show loading for testing
+    return false; // Skip loading screen on subsequent launches
   }
 
   @override

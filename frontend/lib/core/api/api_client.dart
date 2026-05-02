@@ -72,7 +72,7 @@ class ApiClient {
       _uri('/api/v1/auth/login'),
       headers: _headers(),
       body: jsonEncode({'email': email, 'password': password}),
-    );
+    ).timeout(const Duration(seconds: 30));
     return _decodeSingle(response, AuthResponse.fromJson);
   }
 
@@ -132,7 +132,7 @@ class ApiClient {
     final response = await _httpClient.get(
       _uri('/api/v1/me'),
       headers: _headers(token: token),
-    );
+    ).timeout(const Duration(seconds: 30));
     return _decodeSingle(response, UserProfile.fromJson);
   }
 
@@ -176,5 +176,331 @@ class ApiClient {
     final month = local.month.toString().padLeft(2, '0');
     final day = local.day.toString().padLeft(2, '0');
     return '${local.year}-$month-$day';
+  }
+
+  // ==================== VENUE OWNER ENDPOINTS ====================
+
+  Future<DashboardStats> getVenueOwnerDashboard({required String token}) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/dashboard'),
+      headers: _headers(token: token),
+    ).timeout(const Duration(seconds: 30));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+    return DashboardStats.fromJson(body);
+  }
+
+  Future<List<VenueDto>> listVenues({required String token}) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/venues'),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'venues', VenueDto.fromJson);
+  }
+
+  Future<VenueDto> createVenue({
+    required String token,
+    required String name,
+    required String address,
+    required String city,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'address': address,
+      'city': city,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+    };
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/venues'),
+      headers: _headers(token: token),
+      body: jsonEncode(body),
+    );
+    return _decodeSingle(response, VenueDto.fromJson);
+  }
+
+  Future<VenueDto> updateVenue({
+    required String token,
+    required int venueId,
+    required String name,
+    required String address,
+    required String city,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'address': address,
+      'city': city,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+    };
+    final response = await _httpClient.put(
+      _uri('/api/v1/venue-owner/venues/$venueId'),
+      headers: _headers(token: token),
+      body: jsonEncode(body),
+    );
+    return _decodeSingle(response, VenueDto.fromJson);
+  }
+
+  Future<void> deleteVenue({
+    required String token,
+    required int venueId,
+  }) async {
+    final response = await _httpClient.delete(
+      _uri('/api/v1/venue-owner/venues/$venueId'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<List<VenueOwnerFacilityDto>> listFacilitiesForVenue({
+    required String token,
+    required int venueId,
+  }) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/venues/$venueId/facilities'),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'facilities', VenueOwnerFacilityDto.fromJson);
+  }
+
+  Future<VenueOwnerFacilityDto> createFacility({
+    required String token,
+    required int venueId,
+    required String name,
+    required String description,
+    required int capacity,
+    required double pricePerHour,
+    required List<String> amenities,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'description': description,
+      'capacity': capacity,
+      'price_per_hour': pricePerHour,
+      'amenities': amenities,
+    };
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/venues/$venueId/facilities'),
+      headers: _headers(token: token),
+      body: jsonEncode(body),
+    );
+    return _decodeSingle(response, VenueOwnerFacilityDto.fromJson);
+  }
+
+  Future<VenueOwnerFacilityDto> updateFacility({
+    required String token,
+    required int facilityId,
+    required String name,
+    required String description,
+    required int capacity,
+    required double pricePerHour,
+    required List<String> amenities,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'description': description,
+      'capacity': capacity,
+      'price_per_hour': pricePerHour,
+      'amenities': amenities,
+    };
+    final response = await _httpClient.put(
+      _uri('/api/v1/venue-owner/facilities/$facilityId'),
+      headers: _headers(token: token),
+      body: jsonEncode(body),
+    );
+    return _decodeSingle(response, VenueOwnerFacilityDto.fromJson);
+  }
+
+  Future<void> deleteFacility({
+    required String token,
+    required int facilityId,
+  }) async {
+    final response = await _httpClient.delete(
+      _uri('/api/v1/venue-owner/facilities/$facilityId'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<List<VenueOwnerBookingDto>> listVenueOwnerBookings({
+    required String token,
+    String? status,
+    String? dateFrom,
+    String? dateTo,
+    int? facilityId,
+  }) async {
+    final query = <String, String>{};
+    if (status != null && status.isNotEmpty) query['status'] = status;
+    if (dateFrom != null && dateFrom.isNotEmpty) query['date_from'] = dateFrom;
+    if (dateTo != null && dateTo.isNotEmpty) query['date_to'] = dateTo;
+    if (facilityId != null) query['facility_id'] = '$facilityId';
+
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/bookings', query.isEmpty ? null : query),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'bookings', VenueOwnerBookingDto.fromJson);
+  }
+
+  Future<VenueOwnerBookingDto> getBookingDetails({
+    required String token,
+    required int bookingId,
+  }) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/bookings/$bookingId'),
+      headers: _headers(token: token),
+    );
+    return _decodeSingle(response, VenueOwnerBookingDto.fromJson);
+  }
+
+  Future<VenueOwnerBookingDto> approveBooking({
+    required String token,
+    required int bookingId,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/bookings/$bookingId/approve'),
+      headers: _headers(token: token),
+    );
+    return _decodeSingle(response, VenueOwnerBookingDto.fromJson);
+  }
+
+  Future<VenueOwnerBookingDto> rejectBooking({
+    required String token,
+    required int bookingId,
+    String? reason,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/bookings/$bookingId/reject'),
+      headers: _headers(token: token),
+      body: jsonEncode({'reason': reason ?? ''}),
+    );
+    return _decodeSingle(response, VenueOwnerBookingDto.fromJson);
+  }
+
+  Future<VenueOwnerBookingDto> cancelBooking({
+    required String token,
+    required int bookingId,
+    String? reason,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/bookings/$bookingId/cancel'),
+      headers: _headers(token: token),
+      body: jsonEncode({'reason': reason ?? ''}),
+    );
+    return _decodeSingle(response, VenueOwnerBookingDto.fromJson);
+  }
+
+  Future<List<TimeSlotDto>> listTimeSlots({
+    required String token,
+    required int facilityId,
+    required DateTime date,
+  }) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/facilities/$facilityId/time-slots', {
+        'date': _formatDate(date),
+      }),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'slots', TimeSlotDto.fromJson);
+  }
+
+  Future<void> addTimeSlot({
+    required String token,
+    required int facilityId,
+    required DateTime date,
+    required String startTime,
+    required String endTime,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/facilities/$facilityId/time-slots'),
+      headers: _headers(token: token),
+      body: jsonEncode({
+        'date': _formatDate(date),
+        'start_time': startTime,
+        'end_time': endTime,
+      }),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> blockDate({
+    required String token,
+    required int facilityId,
+    required DateTime date,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/venue-owner/facilities/$facilityId/block-date'),
+      headers: _headers(token: token),
+      body: jsonEncode({'date': _formatDate(date)}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> deleteTimeSlot({
+    required String token,
+    required int slotId,
+  }) async {
+    final response = await _httpClient.delete(
+      _uri('/api/v1/venue-owner/time-slots/$slotId'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<AnalyticsData> getAnalytics({
+    required String token,
+    String? dateFrom,
+    String? dateTo,
+  }) async {
+    final query = <String, String>{};
+    if (dateFrom != null && dateFrom.isNotEmpty) query['date_from'] = dateFrom;
+    if (dateTo != null && dateTo.isNotEmpty) query['date_to'] = dateTo;
+
+    final response = await _httpClient.get(
+      _uri('/api/v1/venue-owner/analytics', query.isEmpty ? null : query),
+      headers: _headers(token: token),
+    );
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+    return AnalyticsData.fromJson(body);
   }
 }
