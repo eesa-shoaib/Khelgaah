@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frontend/core/widgets/app_rating_badge.dart';
+import 'package:frontend/core/theme/app_theme.dart';
 
 class AppFacilityCard extends StatelessWidget {
   final String name;
   final String category;
-  final double rating;
+  final String? detail;
   final VoidCallback onTap;
   final double height;
 
@@ -13,7 +13,7 @@ class AppFacilityCard extends StatelessWidget {
     super.key,
     required this.name,
     required this.category,
-    required this.rating,
+    this.detail,
     required this.onTap,
     this.height = 60,
   });
@@ -32,7 +32,7 @@ class AppFacilityCard extends StatelessWidget {
         child: ClipPath(
           clipper: _FacilityCardClipper(),
           child: Material(
-            color: colorScheme.surface,
+            color: AppTheme.surfaceContainerLow,
             child: InkWell(
               onTap: () {
                 HapticFeedback.lightImpact();
@@ -60,7 +60,9 @@ class AppFacilityCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              category,
+                              detail == null || detail!.isEmpty
+                                  ? category
+                                  : '$category • $detail',
                               style: textTheme.bodyMedium?.copyWith(
                                 fontSize: 12,
                               ),
@@ -70,8 +72,6 @@ class AppFacilityCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      AppRatingBadge(rating: rating),
-                      const SizedBox(width: 8),
                       Icon(
                         Icons.arrow_forward_ios_sharp,
                         color: colorScheme.primary,
@@ -110,7 +110,7 @@ class _FacilityCardPainter extends CustomPainter {
     final paint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+      ..strokeWidth = 2.0;
 
     canvas.drawPath(path, paint);
   }

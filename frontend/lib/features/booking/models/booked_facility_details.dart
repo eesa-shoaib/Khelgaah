@@ -1,65 +1,90 @@
-import 'package:flutter/material.dart';
-
 class BookedFacilityDetails {
   final String facilityName;
-  final String dayLabel;
-  final String dateLabel;
-  final String timeLabel;
+  final String facilityType;
+  final String facilitySummary;
+  final DateTime startTime;
+  final DateTime endTime;
   final int durationMinutes;
-  final double subtotal;
-  final double serviceFee;
-  final bool isPaid;
   final String bookingId;
-  final String accessNote;
+  final String status;
 
   const BookedFacilityDetails({
     required this.facilityName,
-    required this.dayLabel,
-    required this.dateLabel,
-    required this.timeLabel,
+    required this.facilityType,
+    required this.facilitySummary,
+    required this.startTime,
+    required this.endTime,
     required this.durationMinutes,
-    required this.subtotal,
-    required this.serviceFee,
-    this.isPaid = false,
     required this.bookingId,
-    required this.accessNote,
+    required this.status,
   });
 
-  double get total => subtotal + serviceFee;
-
   String get scheduleLabel =>
-      '$dayLabel $dateLabel • $timeLabel • $durationMinutes minutes';
+      '${_weekdayLabel(startTime)} ${_monthLabel(startTime)} ${startTime.day} • '
+      '${_timeLabel(startTime)} - ${_timeLabel(endTime)} • $durationMinutes minutes';
 
-  String get paymentStatusLabel => isPaid ? 'PAID' : 'PAYMENT PENDING';
+  String get statusLabel => status.toUpperCase();
 
-  String get reservationStateLabel => isPaid ? 'Confirmed' : 'Awaiting Payment';
-
-  Color get paymentStatusColor =>
-      isPaid ? const Color(0xFFE5A72A) : const Color(0xFFC4693D);
+  String get reservationStateLabel {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return 'Confirmed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
 
   BookedFacilityDetails copyWith({
     String? facilityName,
-    String? dayLabel,
-    String? dateLabel,
-    String? timeLabel,
+    String? facilityType,
+    String? facilitySummary,
+    DateTime? startTime,
+    DateTime? endTime,
     int? durationMinutes,
-    double? subtotal,
-    double? serviceFee,
-    bool? isPaid,
     String? bookingId,
-    String? accessNote,
+    String? status,
   }) {
     return BookedFacilityDetails(
       facilityName: facilityName ?? this.facilityName,
-      dayLabel: dayLabel ?? this.dayLabel,
-      dateLabel: dateLabel ?? this.dateLabel,
-      timeLabel: timeLabel ?? this.timeLabel,
+      facilityType: facilityType ?? this.facilityType,
+      facilitySummary: facilitySummary ?? this.facilitySummary,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
       durationMinutes: durationMinutes ?? this.durationMinutes,
-      subtotal: subtotal ?? this.subtotal,
-      serviceFee: serviceFee ?? this.serviceFee,
-      isPaid: isPaid ?? this.isPaid,
       bookingId: bookingId ?? this.bookingId,
-      accessNote: accessNote ?? this.accessNote,
+      status: status ?? this.status,
     );
   }
+}
+
+String _weekdayLabel(DateTime value) {
+  const labels = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  return labels[value.weekday - 1];
+}
+
+String _monthLabel(DateTime value) {
+  const labels = [
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC',
+  ];
+  return labels[value.month - 1];
+}
+
+String _timeLabel(DateTime value) {
+  final hour = value.hour % 12 == 0 ? 12 : value.hour % 12;
+  final minute = value.minute.toString().padLeft(2, '0');
+  final suffix = value.hour >= 12 ? 'PM' : 'AM';
+  return '$hour:$minute $suffix';
 }

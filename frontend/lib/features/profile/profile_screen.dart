@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/parallelogram_btn.dart';
@@ -11,13 +12,17 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = AppScope.of(context).session;
+    final name = session?.user.fullName ?? 'Player';
+    final email = session?.user.email ?? 'Not signed in';
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 10),
-            const ProfileHeader(name: 'Eesa', email: 'eesa.shoaib@gmail.com'),
+            ProfileHeader(name: name, email: email),
             const SizedBox(height: 10),
             const Divider(color: AppTheme.outlineVariant),
             ProfileMenuItem(
@@ -91,7 +96,11 @@ void _showLogoutDialog(BuildContext context) {
           variant: ParallelogramButtonVariant.surface,
         ),
         ParallelogramButton(
-          onPressed: () {
+          onPressed: () async {
+            await AppScope.of(context).logout();
+            if (!context.mounted) {
+              return;
+            }
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (_) => const AuthScreen()),
               (route) => false,

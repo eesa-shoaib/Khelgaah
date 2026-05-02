@@ -1,7 +1,6 @@
 package venues
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/eesa/khelgaah/backend/internal/platform/httpx"
@@ -15,7 +14,7 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux, _ *slog.Logger) {
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/venues", func(w http.ResponseWriter, r *http.Request) {
 		venues, err := h.service.List(r.Context())
 		if err != nil {

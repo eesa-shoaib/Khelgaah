@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/features/auth/auth_screen.dart';
+import 'package:frontend/features/main_layout.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'first_launch_loading_screen.dart';
@@ -15,15 +17,18 @@ class AppBootstrap extends StatefulWidget {
 
 class _AppBootstrapState extends State<AppBootstrap> {
   static const _firstLaunchKey = 'has_seen_launch_loading';
-  late final Future<bool> _shouldShowLoading;
+  Future<bool>? _shouldShowLoading;
+  AppController? _controller;
 
   @override
-  void initState() {
-    super.initState();
-    _shouldShowLoading = _resolveFirstLaunch();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller ??= AppScope.of(context);
+    _shouldShowLoading ??= _resolveFirstLaunch();
   }
 
   Future<bool> _resolveFirstLaunch() async {
+    await _controller!.initialize();
     final preferences = await SharedPreferences.getInstance();
     final hasSeenLoading = preferences.getBool(_firstLaunchKey) ?? false;
 
@@ -44,17 +49,21 @@ class _AppBootstrapState extends State<AppBootstrap> {
         }
 
         if (!snapshot.data!) {
-          return const AuthScreen();
+          return _controller!.isAuthenticated
+              ? const MainLayout()
+              : const AuthScreen();
         }
 
-        return const _LaunchSequence();
+        return _LaunchSequence(controller: _controller!);
       },
     );
   }
 }
 
 class _LaunchSequence extends StatefulWidget {
-  const _LaunchSequence();
+  const _LaunchSequence({required this.controller});
+
+  final AppController controller;
 
   @override
   State<_LaunchSequence> createState() => _LaunchSequenceState();
@@ -86,7 +95,11 @@ class _LaunchSequenceState extends State<_LaunchSequence> {
       duration: const Duration(milliseconds: 450),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
-      child: _showAuth ? const AuthScreen() : const FirstLaunchLoadingScreen(),
+      child: _showAuth
+          ? (widget.controller.isAuthenticated
+                ? const MainLayout()
+                : const AuthScreen())
+          : const FirstLaunchLoadingScreen(),
     );
   }
 }

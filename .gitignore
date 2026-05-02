@@ -5,7 +5,19 @@
 .DS_Store
 .idea/
 .vscode/
-.codex/
+.codex
+
+# Go (Backend)
+backend/bin/
+backend/out/
+backend/api/api
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
 
 # Flutter / Dart
 frontend/.dart_tool/
@@ -14,27 +26,33 @@ frontend/.pub-cache/
 frontend/build/
 frontend/.flutter-plugins
 frontend/.flutter-plugins-dependencies
+frontend/.flutter-plugins-dependencies
+frontend/pubspec_overrides.yaml
 
 # Android
 frontend/android/.gradle/
 frontend/android/app/build/
 frontend/android/local.properties
+frontend/android/key.properties
+frontend/android/app/src/main/res/values/google-services.json
 
 # iOS
 frontend/ios/Pods/
 frontend/ios/.symlinks/
 frontend/ios/Flutter/Flutter.framework
 frontend/ios/Flutter/Flutter.podspec
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/Runner/GeneratedPluginRegistrant.h
+frontend/ios/Runner/GeneratedPluginRegistrant.m
 
 # Web
 frontend/build/web/
 
 # Environment files
 .env
+.env.*
+backend/.env
+backend/.env.local
 
-# Node (if backend later)
-backend/node_modules/
 
-# Python (if backend later)
-backend/__pycache__/
-backend/*.pyc

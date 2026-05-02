@@ -2,7 +2,6 @@ package availability
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -17,7 +16,7 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux, _ *slog.Logger) {
+func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/v1/facilities/{facilityID}/availability", func(w http.ResponseWriter, r *http.Request) {
 		facilityID, err := strconv.ParseInt(r.PathValue("facilityID"), 10, 64)
 		if err != nil {

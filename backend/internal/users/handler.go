@@ -1,7 +1,6 @@
 package users
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/eesa/khelgaah/backend/internal/platform/httpx"
@@ -16,7 +15,7 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux, _ *slog.Logger, authMiddleware middleware.Middleware) {
+func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMiddleware middleware.Middleware) {
 	mux.Handle("GET /api/v1/me", authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := middleware.UserIDFromContext(r.Context())
 		if !ok {

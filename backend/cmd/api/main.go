@@ -70,11 +70,11 @@ func main() {
 
 	authMiddleware := middleware.Authenticate(tokenManager)
 
-	venues.NewHandler(venueService).RegisterRoutes(router, logr)
-	facilities.NewHandler(facilityService).RegisterRoutes(router, logr)
-	availability.NewHandler(availabilityService).RegisterRoutes(router, logr)
-	bookings.NewHandler(bookingService).RegisterRoutes(router, logr, authMiddleware)
-	users.NewHandler(userService).RegisterRoutes(router, logr, authMiddleware)
+	venues.NewHandler(venueService).RegisterRoutes(router)
+	facilities.NewHandler(facilityService).RegisterRoutes(router)
+	availability.NewHandler(availabilityService).RegisterRoutes(router)
+	bookings.NewHandler(bookingService).RegisterRoutes(router, authMiddleware)
+	users.NewHandler(userService).RegisterRoutes(router, authMiddleware)
 
 	server := &http.Server{
 		Addr:         cfg.HTTPAddr,

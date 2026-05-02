@@ -5,13 +5,8 @@ import 'package:frontend/features/booking/models/booked_facility_details.dart';
 
 class BookedFacilityDetailsView extends StatelessWidget {
   final BookedFacilityDetails details;
-  final VoidCallback? onPayNow;
 
-  const BookedFacilityDetailsView({
-    super.key,
-    required this.details,
-    this.onPayNow,
-  });
+  const BookedFacilityDetailsView({super.key, required this.details});
 
   @override
   Widget build(BuildContext context) {
@@ -22,33 +17,27 @@ class BookedFacilityDetailsView extends StatelessWidget {
           BookingSummaryCard(
             title: details.facilityName,
             subtitle: details.scheduleLabel,
-            meta:
-                '${details.paymentStatusLabel}  |  BOOKING ID ${details.bookingId}',
+            meta: '${details.statusLabel}  |  BOOKING ID ${details.bookingId}',
           ),
           const SizedBox(height: 20),
           _StatusStrip(
             status: details.reservationStateLabel,
-            paymentStatus: details.paymentStatusLabel,
-            accentColor: details.paymentStatusColor,
+            bookingStatus: details.statusLabel,
           ),
           const SizedBox(height: 20),
           _SectionCard(
-            title: 'Payment',
+            title: 'Booking',
             child: Column(
               children: [
+                _DetailRow(label: 'Facility', value: details.facilityName),
+                _DetailRow(label: 'Type', value: details.facilityType),
                 _DetailRow(
-                  label: 'Facility charge',
-                  value: '\$${details.subtotal.toStringAsFixed(2)}',
+                  label: 'Duration',
+                  value: '${details.durationMinutes} minutes',
                 ),
                 _DetailRow(
-                  label: 'Service fee',
-                  value: '\$${details.serviceFee.toStringAsFixed(2)}',
-                ),
-                const Divider(color: AppTheme.outlineVariant, height: 24),
-                _DetailRow(
-                  label: 'Total',
-                  value: '\$${details.total.toStringAsFixed(2)}',
-                  highlight: true,
+                  label: 'Status',
+                  value: details.reservationStateLabel,
                 ),
               ],
             ),
@@ -66,7 +55,7 @@ class BookedFacilityDetailsView extends StatelessWidget {
                   label: 'Arrival',
                   value: 'Arrive 10 minutes before the slot',
                 ),
-                _DetailRow(label: 'Note', value: details.accessNote),
+                _DetailRow(label: 'Hours', value: details.facilitySummary),
               ],
             ),
           ),
@@ -90,14 +79,6 @@ class BookedFacilityDetailsView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          ParallelogramButton(
-            text: details.isPaid ? 'Payment Received' : 'Pay Now',
-            onPressed: details.isPaid ? () {} : (onPayNow ?? () {}),
-            fullWidth: true,
-            icon: details.isPaid ? Icons.check : Icons.payment,
-            enabled: !details.isPaid && onPayNow != null,
-          ),
           const SizedBox(height: 24),
         ],
       ),
@@ -107,17 +88,16 @@ class BookedFacilityDetailsView extends StatelessWidget {
 
 class _StatusStrip extends StatelessWidget {
   final String status;
-  final String paymentStatus;
-  final Color accentColor;
+  final String bookingStatus;
 
-  const _StatusStrip({
-    required this.status,
-    required this.paymentStatus,
-    required this.accentColor,
-  });
+  const _StatusStrip({required this.status, required this.bookingStatus});
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = bookingStatus == 'CONFIRMED'
+        ? AppTheme.secondary
+        : AppTheme.primary;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -141,7 +121,7 @@ class _StatusStrip extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  paymentStatus,
+                  bookingStatus,
                   style: const TextStyle(
                     color: AppTheme.onSurfaceVariant,
                     fontSize: 12,
@@ -192,19 +172,14 @@ class _SectionCard extends StatelessWidget {
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-  final bool highlight;
 
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
+  const _DetailRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     final valueStyle = TextStyle(
-      color: highlight ? AppTheme.secondary : AppTheme.onSurface,
-      fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
+      color: AppTheme.onSurface,
+      fontWeight: FontWeight.w500,
     );
 
     return Padding(

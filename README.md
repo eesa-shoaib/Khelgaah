@@ -15,6 +15,23 @@ Most booking apps fail at concurrency. Khelgaah is built with a "Consistency-Fir
 | Backend | Go (Golang) |
 | Database | PostgreSQL |
 
+## Running the Project
+
+### Backend
+```bash
+cd backend
+go run ./cmd/api
+```
+
+### Frontend (with Android Emulator)
+```bash
+# Set up port forwarding for local backend
+adb reverse tcp:8080 tcp:8080
+
+cd frontend
+flutter run --dart-define=API_USE_ADB_REVERSE=true
+```
+
 ## Implemented Features
 
 ### Frontend (Flutter)

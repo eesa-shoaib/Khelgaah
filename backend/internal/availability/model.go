@@ -7,9 +7,3 @@ type Slot struct {
 	EndTime     time.Time `json:"end_time"`
 	IsAvailable bool      `json:"is_available"`
 }
-
-type SlotRequest struct {
-	Date       string
-	Duration   int
-	FacilityID int64
-}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/eesa/khelgaah/backend/internal/availability"
@@ -45,7 +46,11 @@ func (s *Service) Create(ctx context.Context, userID int64, input CreateBookingI
 	if err != nil {
 		return Booking{}, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			slog.Error("rollback failed", "error", err)
+		}
+	}()
 
 	conflict, err := s.availabilityRepo.HasConflict(ctx, tx, input.FacilityID, start, end)
 	if err != nil {

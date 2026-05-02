@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/app_controller.dart';
+import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/features/main_layout.dart';
 
@@ -12,6 +15,86 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isSignIn = true;
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_isSubmitting) {
+      return;
+    }
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showError('Email and password are required.');
+      return;
+    }
+
+    if (!_isSignIn) {
+      if (_fullNameController.text.trim().isEmpty) {
+        _showError('Full name is required.');
+        return;
+      }
+      if (_phoneController.text.trim().isEmpty) {
+        _showError('Phone is required.');
+        return;
+      }
+    }
+
+    final controller = AppScope.of(context);
+    setState(() => _isSubmitting = true);
+
+    try {
+      if (_isSignIn) {
+        await controller.signIn(email: email, password: password);
+      } else {
+        await controller.signUp(
+          fullName: _fullNameController.text.trim(),
+          email: email,
+          password: password,
+          phone: _phoneController.text.trim(),
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      AppFeedback.haptic(AppFeedbackType.success);
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const MainLayout()));
+    } on ApiException catch (error) {
+      _showError(error.message);
+    } catch (_) {
+      _showError('Could not reach the backend.');
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  void _showError(String message) {
+    AppFeedback.pulseMessage(
+      context,
+      message: message,
+      icon: Icons.error_outline,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,41 +167,44 @@ class _AuthScreenState extends State<AuthScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (!_isSignIn) ...[
-                      const AppTextField(
+                      AppTextField(
                         label: 'Full Name',
                         hintText: 'Eesa Shoaib',
+                        controller: _fullNameController,
                       ),
                       const SizedBox(height: 16),
                     ],
-                    const AppTextField(
+                    AppTextField(
                       label: 'Email',
                       hintText: 'you@example.com',
                       keyboardType: TextInputType.emailAddress,
+                      controller: _emailController,
                     ),
                     const SizedBox(height: 16),
-                    const AppTextField(
+                    AppTextField(
                       label: 'Password',
                       hintText: 'Enter your password',
                       obscureText: true,
+                      controller: _passwordController,
                     ),
                     if (!_isSignIn) ...[
                       const SizedBox(height: 16),
-                      const AppTextField(
+                      AppTextField(
                         label: 'Phone',
                         hintText: '+92 300 1234567',
                         keyboardType: TextInputType.phone,
+                        controller: _phoneController,
                       ),
                     ],
                     const SizedBox(height: 20),
                     ParallelogramButton(
-                      text: _isSignIn ? 'Enter KhelGaah' : 'Create Account',
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const MainLayout()),
-                        );
-                      },
+                      text: _isSubmitting
+                          ? 'Connecting...'
+                          : (_isSignIn ? 'Enter KhelGaah' : 'Create Account'),
+                      onPressed: _submit,
                       fullWidth: true,
                       icon: Icons.arrow_forward,
+                      enabled: !_isSubmitting,
                     ),
                   ],
                 ),

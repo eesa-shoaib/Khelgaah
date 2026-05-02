@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/api/api_models.dart';
+import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/features/booking/bookings_screen.dart';
 import 'package:frontend/features/booking/models/booked_facility_details.dart';
-import 'home/home_screen.dart';
-import 'search/search_screen.dart';
+import 'package:frontend/features/home/home_screen.dart';
+import 'package:frontend/features/search/search_screen.dart';
 
 class MainLayout extends StatefulWidget {
   final int initialIndex;
@@ -18,7 +20,13 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   late int _selectedIndex;
   late final PageController _pageController;
-  BookedFacilityDetails? _latestBooking;
+  bool _isLoading = true;
+  List<FacilityDto> _facilities = const [];
+  List<BookedFacilityDetails> _bookings = const [];
+  bool _didLoadInitialData = false;
+
+  BookedFacilityDetails? get _latestBooking =>
+      _bookings.isEmpty ? null : _bookings.first;
 
   @override
   void initState() {
@@ -28,14 +36,99 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didLoadInitialData) {
+      return;
+    }
+    _didLoadInitialData = true;
+    _refreshData();
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
 
-  void _handleBookingUpdated(BookedFacilityDetails details) {
+  Future<void> _refreshData() async {
+    final controller = AppScope.of(context);
+    final session = controller.session;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final facilities = await controller.apiClient.listFacilities();
+      final bookings = session == null
+          ? const <BookingDto>[]
+          : await controller.apiClient.listBookings(token: session.token);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _facilities = facilities;
+        _bookings = bookings
+            .map((booking) => _toBookedDetails(booking, facilities))
+            .toList(growable: false);
+        _isLoading = false;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _isLoading = false);
+      AppFeedback.pulseMessage(
+        context,
+        message: error.message,
+        icon: Icons.error_outline,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _isLoading = false);
+      AppFeedback.pulseMessage(
+        context,
+        message: 'Could not load live app data.',
+        icon: Icons.error_outline,
+      );
+    }
+  }
+
+  BookedFacilityDetails _toBookedDetails(
+    BookingDto booking,
+    List<FacilityDto> facilities,
+  ) {
+    final facility = facilities.cast<FacilityDto?>().firstWhere(
+      (item) => item?.id == booking.facilityId,
+      orElse: () => null,
+    );
+
+    return BookedFacilityDetails(
+      facilityName: facility?.name ?? 'Facility #${booking.facilityId}',
+      facilityType: facility == null
+          ? 'Unknown facility'
+          : '${facility.sport} • ${facility.type}',
+      facilitySummary: facility?.openSummary ?? 'Live booking from backend',
+      startTime: booking.startTime.toLocal(),
+      endTime: booking.endTime.toLocal(),
+      durationMinutes: booking.endTime.difference(booking.startTime).inMinutes,
+      bookingId: booking.id.toString(),
+      status: booking.status,
+    );
+  }
+
+  Future<void> _handleBookingUpdated(BookedFacilityDetails _) async {
+    await _refreshData();
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
-      _latestBooking = details;
       _selectedIndex = 2;
     });
 
@@ -47,25 +140,8 @@ class _MainLayoutState extends State<MainLayout> {
     AppFeedback.haptic(AppFeedbackType.success);
     AppFeedback.pulseMessage(
       context,
-      message: 'Booking moved to your Bookings tab.',
+      message: 'Booking saved and reloaded from backend.',
       icon: Icons.bookmark_added_outlined,
-    );
-  }
-
-  void _handleBookingPayment() {
-    if (_latestBooking == null) {
-      return;
-    }
-
-    setState(() {
-      _latestBooking = _latestBooking!.copyWith(isPaid: true);
-    });
-
-    AppFeedback.haptic(AppFeedbackType.success);
-    AppFeedback.pulseMessage(
-      context,
-      message: 'Payment status updated.',
-      icon: Icons.verified_outlined,
     );
   }
 
@@ -100,14 +176,17 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(
+        facilities: _facilities,
+        isLoading: _isLoading,
         latestBooking: _latestBooking,
         onBookingUpdated: _handleBookingUpdated,
       ),
-      SearchScreen(onBookingUpdated: _handleBookingUpdated),
-      BookingsScreen(
-        latestBooking: _latestBooking,
-        onPayNow: _latestBooking == null ? null : _handleBookingPayment,
+      SearchScreen(
+        facilities: _facilities,
+        isLoading: _isLoading,
+        onBookingUpdated: _handleBookingUpdated,
       ),
+      BookingsScreen(bookings: _bookings),
     ];
 
     return Scaffold(
@@ -160,15 +239,15 @@ class _MainLayoutState extends State<MainLayout> {
             backgroundColor: Colors.transparent,
             onTap: _handleNavTap,
             items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
               BottomNavigationBarItem(
                 icon: Icon(Icons.search),
-                label: "Search",
+                label: 'Search',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.bookmark_outline),
                 activeIcon: Icon(Icons.bookmark),
-                label: "Bookings",
+                label: 'Bookings',
               ),
             ],
           ),
@@ -178,30 +257,18 @@ class _MainLayoutState extends State<MainLayout> {
   }
 }
 
-/// Clipper for pointed left and right boundaries on navigation bar
 class _NavBarClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    const pointSize = 15.0; // Adjust this to make points bigger/smaller
+    const pointSize = 15.0;
 
-    // Start from top-left after the point
     path.moveTo(pointSize, 0);
-
-    // Top line to top-right
     path.lineTo(size.width - pointSize, 0);
-
-    // Right point
     path.lineTo(size.width, size.height / 2);
-
-    // Bottom-right to bottom-left
     path.lineTo(size.width - pointSize, size.height);
     path.lineTo(pointSize, size.height);
-
-    // Left point
     path.lineTo(0, size.height / 2);
-
-    // Close the path
     path.close();
 
     return path;

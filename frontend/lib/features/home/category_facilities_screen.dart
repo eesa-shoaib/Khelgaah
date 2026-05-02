@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/utils/app_feedback.dart';
+import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
+import 'package:frontend/features/booking/booking_screen.dart';
 import 'package:frontend/features/booking/models/booked_facility_details.dart';
-import '../booking/booking_screen.dart';
 
 class CategoryFacilitiesScreen extends StatelessWidget {
   final String category;
-  final List<(String, double)> facilities;
+  final List<FacilityDto> facilities;
   final ValueChanged<BookedFacilityDetails> onBookingUpdated;
 
   const CategoryFacilitiesScreen({
@@ -21,27 +21,28 @@ class CategoryFacilitiesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(category),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
         actions: const [ProfileActionIcon()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          for (final (name, rating) in facilities)
+          if (facilities.isEmpty)
+            const BookingSummaryCard(
+              title: 'No facilities found',
+              subtitle: 'No live facilities match this sport right now.',
+              meta: 'LIVE DATA',
+            ),
+          for (final facility in facilities)
             AppFacilityCard(
-              name: name,
-              category: category,
-              rating: rating,
+              name: facility.name,
+              category: facility.sport,
+              detail: facility.type,
               onTap: () async {
-                AppFeedback.haptic(AppFeedbackType.tap);
                 final bookedDetails =
                     await Navigator.push<BookedFacilityDetails>(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BookingScreen(facilityName: name),
+                        builder: (_) => BookingScreen(facility: facility),
                       ),
                     );
                 if (bookedDetails != null) {

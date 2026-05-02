@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 import 'api_models.dart';
 
 class ApiClient {
-  ApiClient({http.Client? httpClient}) : _httpClient = httpClient ?? http.Client();
+  ApiClient({http.Client? httpClient})
+    : _httpClient = httpClient ?? http.Client();
 
   final http.Client _httpClient;
 
@@ -20,15 +21,21 @@ class ApiClient {
       return 'http://localhost:8080';
     }
     if (Platform.isAndroid) {
+      const useAdbReverse = bool.fromEnvironment('API_USE_ADB_REVERSE');
+      if (useAdbReverse) {
+        return 'http://127.0.0.1:8080';
+      }
       return 'http://10.0.2.2:8080';
     }
     return 'http://localhost:8080';
   }
 
   Uri _uri(String path, [Map<String, String>? queryParameters]) {
-    return Uri.parse(
-      '$baseUrl$path',
-    ).replace(queryParameters: queryParameters?.isEmpty ?? true ? null : queryParameters);
+    return Uri.parse('$baseUrl$path').replace(
+      queryParameters: queryParameters?.isEmpty ?? true
+          ? null
+          : queryParameters,
+    );
   }
 
   Map<String, String> _headers({String? token}) => {

@@ -1,17 +1,23 @@
-# frontend
+# Khelgaah Frontend
 
-A new Flutter project.
+## Run Against Local Backend
 
-## Getting Started
+Start the Go API on port `8080`, then for a real Android phone use `adb reverse`
+so the app can reach your laptop's backend over device localhost:
 
-This project is a starting point for a Flutter application.
+```bash
+adb reverse tcp:8080 tcp:8080
+flutter run --dart-define=API_USE_ADB_REVERSE=true
+```
 
-A few resources to get you started if this is your first Flutter project:
+You can also point the app at any backend directly:
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.10:8080
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Default base URLs:
+
+- Web: `http://localhost:8080`
+- Android emulator: `http://10.0.2.2:8080`
+- Android phone with `API_USE_ADB_REVERSE=true`: `http://127.0.0.1:8080`

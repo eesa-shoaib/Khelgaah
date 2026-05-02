@@ -21,20 +21,6 @@ class _BookedFacilityScreenState extends State<BookedFacilityScreen> {
     _details = widget.details;
   }
 
-  Future<void> _handlePayNow() async {
-    setState(() {
-      _details = _details.copyWith(isPaid: true);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Payment marked as received for ${_details.facilityName}.',
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope<BookedFacilityDetails>(
@@ -51,10 +37,7 @@ class _BookedFacilityScreenState extends State<BookedFacilityScreen> {
           title: Text(_details.facilityName),
           actions: const [ProfileActionIcon()],
         ),
-        body: BookedFacilityDetailsView(
-          details: _details,
-          onPayNow: _handlePayNow,
-        ),
+        body: BookedFacilityDetailsView(details: _details),
       ),
     );
   }

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
+import 'package:frontend/features/booking/booked_facility_screen.dart';
 import 'package:frontend/features/booking/models/booked_facility_details.dart';
-import 'package:frontend/features/booking/widgets/booked_facility_details_view.dart';
 
 class BookingsScreen extends StatelessWidget {
-  final BookedFacilityDetails? latestBooking;
-  final VoidCallback? onPayNow;
+  final List<BookedFacilityDetails> bookings;
 
-  const BookingsScreen({super.key, required this.latestBooking, this.onPayNow});
+  const BookingsScreen({super.key, required this.bookings});
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +15,28 @@ class BookingsScreen extends StatelessWidget {
         title: const Text('My Bookings'),
         actions: const [ProfileActionIcon()],
       ),
-      body: latestBooking == null
+      body: bookings.isEmpty
           ? const _EmptyBookingsState()
-          : BookedFacilityDetailsView(
-              details: latestBooking!,
-              onPayNow: onPayNow,
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                for (final booking in bookings)
+                  AppFacilityCard(
+                    name: booking.facilityName,
+                    category: booking.reservationStateLabel,
+                    detail: booking.scheduleLabel,
+                    height: 84,
+                    onTap: () {
+                      Navigator.push<void>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              BookedFacilityScreen(details: booking),
+                        ),
+                      );
+                    },
+                  ),
+              ],
             ),
     );
   }
@@ -41,7 +56,7 @@ class _EmptyBookingsState extends StatelessWidget {
               'Book any facility and it will appear here with payment and access details.',
           meta: 'BOOKINGS HUB',
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 24),
         _HintCard(
           icon: Icons.event_available,
           title: 'Track reservations',
@@ -73,32 +88,49 @@ class _HintCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceContainer,
-        border: Border.all(color: AppTheme.outlineVariant),
+        color: Colors.transparent,
+        border: Border.all(color: colorScheme.outlineVariant, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppTheme.primary),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Icon(icon, color: colorScheme.primary, size: 18),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: AppTheme.onSurface,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
+                    fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   subtitle,
-                  style: const TextStyle(color: AppTheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),

@@ -32,7 +32,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, logr *slog.Logger) {
 				return
 			}
 			logr.Error("signup failed", "error", err)
-			httpx.WriteError(w, http.StatusBadRequest, err.Error())
+			httpx.WriteError(w, http.StatusInternalServerError, "failed to signup")
 			return
 		}
 

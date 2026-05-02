@@ -2,7 +2,6 @@ package bookings
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
 	"github.com/eesa/khelgaah/backend/internal/platform/httpx"
@@ -17,7 +16,7 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(mux *http.ServeMux, _ *slog.Logger, authMiddleware middleware.Middleware) {
+func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMiddleware middleware.Middleware) {
 	mux.Handle("POST /api/v1/bookings", authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := middleware.UserIDFromContext(r.Context())
 		if !ok {
