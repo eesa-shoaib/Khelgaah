@@ -4,6 +4,9 @@ import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/status_badge_widget.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
+import 'package:frontend/core/widgets/parallelogram_btn.dart';
+import 'package:frontend/features/venue_owner/facilities_list_screen.dart';
+import 'package:frontend/features/venue_owner/facility_details_screen.dart';
 
 class VenueDetailsScreen extends StatefulWidget {
   final VenueDto venue;
@@ -19,12 +22,24 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
   List<VenueOwnerFacilityDto> _facilities = [];
   bool _isLoading = true;
   String? _error;
+  bool _hasLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoaded) {
+      _hasLoaded = true;
+      Future.microtask(() {
+        if (!mounted) return;
+        _loadFacilities();
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _venue = widget.venue;
-    _loadFacilities();
   }
 
   Future<void> _loadFacilities() async {
@@ -68,7 +83,9 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
         title: Text(_venue.name),
         actions: const [ProfileActionIcon()],
       ),
-      body: _isLoading
+      body: Stack(
+        children: [
+          _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? _ErrorState(message: _error!, onRetry: _loadFacilities)
@@ -96,12 +113,45 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                         )
                       else
                         for (final facility in _facilities)
-                          _FacilityCard(
-                            facility: facility,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FacilityDetailsScreen(
+                                    facility: facility,
+                                  ),
+                                ),
+                              ).then((_) => _loadFacilities());
+                            },
+                            child: _FacilityCard(
+                              facility: facility,
+                            ),
                           ),
                     ],
                   ),
                 ),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: SafeArea(
+              child: ParallelogramButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FacilityEditScreen(venueId: _venue.id),
+                    ),
+                  ).then((_) => _loadFacilities());
+                },
+                text: 'Add Facility',
+                icon: Icons.add,
+                variant: ParallelogramButtonVariant.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -221,47 +271,40 @@ class _FacilityCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            facility.description,
+            'Sport: ${facility.sport}',
             style: theme.textTheme.bodySmall?.copyWith(
                   color: AppTheme.onSurfaceVariant,
                 ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 4),
+          Text(
+            'Type: ${facility.type}',
+            style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppTheme.onSurfaceVariant,
+                ),
+          ),
+          if (facility.openSummary.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              facility.openSummary,
+              style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.people, size: 14, color: AppTheme.onSurfaceVariant),
-              const SizedBox(width: 4),
-              Text(
-                '${facility.capacity} people',
-                style: theme.textTheme.bodySmall,
-              ),
-              const SizedBox(width: 16),
               Icon(Icons.currency_rupee, size: 14, color: AppTheme.onSurfaceVariant),
               const SizedBox(width: 4),
               Text(
-                '${facility.pricePerHour.toStringAsFixed(0)}/hr',
+                '${facility.pricePerHour}/hr',
                 style: theme.textTheme.bodySmall,
               ),
             ],
           ),
-          if (facility.amenities.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              children: facility.amenities
-                  .map(
-                    (a) => Chip(
-                      label: Text(a),
-                      labelStyle: const TextStyle(fontSize: 10),
-                      padding: EdgeInsets.zero,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
         ],
       ),
     );

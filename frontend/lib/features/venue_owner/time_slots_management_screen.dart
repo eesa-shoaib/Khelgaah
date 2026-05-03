@@ -4,13 +4,18 @@ import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
+import 'package:frontend/core/widgets/parallelogram_btn.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 class TimeSlotsManagementScreen extends StatefulWidget {
   final int facilityId;
+  final VenueOwnerFacilityDto? facility;
 
-  const TimeSlotsManagementScreen({super.key, required this.facilityId});
+  const TimeSlotsManagementScreen({
+    super.key,
+    required this.facilityId,
+    this.facility,
+  });
 
   @override
   State<TimeSlotsManagementScreen> createState() =>
@@ -20,14 +25,59 @@ class TimeSlotsManagementScreen extends StatefulWidget {
 class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
   late DateTime _selectedDate;
   bool _isLoading = true;
+  bool _isSaving = false;
+  bool _isGenerating = false;
   List<TimeSlotDto> _slots = [];
   String? _error;
+  VenueOwnerFacilityDto? _facility;
+  
+  TimeOfDay _openTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _closeTime = const TimeOfDay(hour: 22, minute: 0);
+  int _slotDuration = 60;
+
+  bool get _canSave {
+    return _openTime.hour < _closeTime.hour || 
+        (_openTime.hour == _closeTime.hour && _openTime.minute < _closeTime.minute);
+  }
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+    _facility = widget.facility;
+    
+    if (_facility?.openTime != null) {
+      final parts = _facility!.openTime!.split(':');
+      if (parts.length >= 2) {
+        _openTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 9,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
+    if (_facility?.closeTime != null) {
+      final parts = _facility!.closeTime!.split(':');
+      if (parts.length >= 2) {
+        _closeTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 22,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
+    if (_facility?.slotDurationMins != null) {
+      _slotDuration = _facility!.slotDurationMins!;
+    }
+    
     _loadTimeSlots();
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   Future<void> _loadTimeSlots() async {
@@ -66,100 +116,210 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
     }
   }
 
-  Future<void> _addTimeSlot() async {
+  Future<void> _saveOpeningHours() async {
+    if (!_canSave) {
+      AppFeedback.pulseMessage(
+        context,
+        message: 'Close time must be after open time',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
     final controller = AppScope.of(context);
     final token = controller.session?.token;
+    if (token == null) return;
 
-    final result = await showDialog<_TimeSlotFormResult>(
+    setState(() => _isSaving = true);
+
+    try {
+      await controller.apiClient.updateFacility(
+        token: token,
+        facilityId: widget.facilityId,
+        name: _facility?.name ?? '',
+        sport: _facility?.sport ?? '',
+        type: _facility?.type ?? '',
+        openSummary: _facility?.openSummary ?? '',
+        pricePerHour: double.tryParse(_facility?.pricePerHour ?? '0') ?? 0,
+        status: _facility?.status ?? 'active',
+        openTime: _formatTimeOfDay(_openTime),
+        closeTime: _formatTimeOfDay(_closeTime),
+        slotDurationMins: _slotDuration,
+      );
+      if (!mounted) return;
+      _facility = VenueOwnerFacilityDto(
+        id: _facility!.id,
+        venueId: _facility!.venueId,
+        name: _facility!.name,
+        sport: _facility!.sport,
+        type: _facility!.type,
+        openSummary: _facility!.openSummary,
+        pricePerHour: _facility!.pricePerHour,
+        status: _facility!.status,
+        openTime: _formatTimeOfDay(_openTime),
+        closeTime: _formatTimeOfDay(_closeTime),
+        slotDurationMins: _slotDuration,
+      );
+      
+      await _generateSlots();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      AppFeedback.pulseMessage(
+        context,
+        message: e.message,
+        icon: Icons.error_outline,
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  int _countSlotsToGenerate() {
+    int count = 0;
+    var current = _openTime;
+    
+    while (current.hour < _closeTime.hour || 
+        (current.hour == _closeTime.hour && current.minute < _closeTime.minute)) {
+      final endMinutes = current.hour * 60 + current.minute + _slotDuration;
+      if (endMinutes > current.hour * 60 + current.minute) {
+        final endHour = endMinutes ~/ 60;
+        final endMin = endMinutes % 60;
+        
+        if (endHour > _closeTime.hour || 
+            (endHour == _closeTime.hour && endMin > _closeTime.minute)) {
+          break;
+        }
+        count++;
+        current = TimeOfDay(hour: endHour, minute: endMin);
+      } else {
+        break;
+      }
+    }
+    
+    return count;
+  }
+
+  Future<void> _generateSlots() async {
+    final count = _countSlotsToGenerate();
+    if (count == 0) {
+      AppFeedback.pulseMessage(
+        context,
+        message: 'Invalid hours or duration',
+        icon: Icons.error_outline,
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => const _AddTimeSlotDialog(),
+      builder: (context) => AlertDialog(
+        title: const Text('Generate Slots'),
+        content: Text('Add $count time slots for this facility?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Generate'),
+          ),
+        ],
+      ),
     );
 
-    if (result == null) return;
+    if (confirmed != true) return;
     if (!mounted) return;
-    if (token == null) return;
 
-    try {
-      await controller.apiClient.addTimeSlot(
-        token: token,
-        facilityId: widget.facilityId,
-        date: _selectedDate,
-        startTime: result.startTime,
-        endTime: result.endTime,
-      );
-      if (!mounted) return;
-      AppFeedback.pulseMessage(
-        context,
-        message: 'Time slot added successfully.',
-        icon: Icons.check_circle_outline,
-      );
-      _loadTimeSlots();
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      AppFeedback.pulseMessage(
-        context,
-        message: e.message,
-        icon: Icons.error_outline,
-      );
-    }
-  }
+    setState(() => _isGenerating = true);
 
-  Future<void> _blockDate() async {
     final controller = AppScope.of(context);
     final token = controller.session?.token;
-
-    final confirmed = await ConfirmationDialog.show(
-      context,
-      title: 'Block Date',
-      message:
-          'Are you sure you want to block ${_formatDate(_selectedDate)}? No bookings will be allowed on this date.',
-      confirmText: 'Block',
-      isDestructive: true,
-    );
-
-    if (!confirmed) return;
-    if (!mounted) return;
     if (token == null) return;
 
+    var current = _openTime;
+    int generated = 0;
+
     try {
-      await controller.apiClient.blockDate(
-        token: token,
-        facilityId: widget.facilityId,
-        date: _selectedDate,
-      );
+      while (current.hour < _closeTime.hour || 
+          (current.hour == _closeTime.hour && current.minute < _closeTime.minute)) {
+        final endMinutes = current.hour * 60 + current.minute + _slotDuration;
+        if (endMinutes > current.hour * 60 + current.minute) {
+          final endHour = endMinutes ~/ 60;
+          final endMin = endMinutes % 60;
+          
+          if (endHour > _closeTime.hour || 
+              (endHour == _closeTime.hour && endMin > _closeTime.minute)) {
+            break;
+          }
+          
+          final startsAt = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+            current.hour,
+            current.minute,
+          ).toUtc().toIso8601String();
+
+          final endsAt = DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+            endHour,
+            endMin,
+          ).toUtc().toIso8601String();
+
+          await controller.apiClient.addTimeSlot(
+            token: token,
+            facilityId: widget.facilityId,
+            startsAt: startsAt,
+            endsAt: endsAt,
+            slotType: 'available',
+          );
+          
+          generated++;
+          current = TimeOfDay(hour: endHour, minute: endMin);
+        } else {
+          break;
+        }
+      }
+
       if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
-        message: 'Date blocked successfully.',
+        message: '$generated slots generated',
         icon: Icons.check_circle_outline,
       );
       _loadTimeSlots();
-    } on ApiException catch (e) {
+    } catch (e) {
       if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
-        message: e.message,
-        icon: Icons.error_outline,
+        message: 'Generated $generated slots',
+        icon: Icons.info_outline,
       );
+      _loadTimeSlots();
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
     }
   }
 
-  Future<void> _deleteTimeSlot(TimeSlotDto slot) async {
+  Future<void> _deleteSlot(TimeSlotDto slot) async {
     if (slot.id == null) return;
 
-    final controller = AppScope.of(context);
-    final token = controller.session?.token;
-
     final confirmed = await ConfirmationDialog.show(
       context,
-      title: 'Delete Time Slot',
-      message: 'Are you sure you want to delete this time slot?',
+      title: 'Delete Slot',
+      message: 'Delete "${_formatTimeRange(slot)}"?',
       confirmText: 'Delete',
       isDestructive: true,
     );
 
     if (!confirmed) return;
     if (!mounted) return;
+
+    final controller = AppScope.of(context);
+    final token = controller.session?.token;
     if (token == null) return;
 
     try {
@@ -170,7 +330,7 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
       if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
-        message: 'Time slot deleted successfully.',
+        message: 'Slot deleted',
         icon: Icons.check_circle_outline,
       );
       _loadTimeSlots();
@@ -184,8 +344,16 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
     }
   }
 
+  String _formatTimeRange(TimeSlotDto slot) {
+    return '${_formatTime(slot.startsAt)} - ${_formatTime(slot.endsAt)}';
+  }
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  bool isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
@@ -194,30 +362,29 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Time Slots'),
-        actions: [ProfileActionIcon()],
+        title: Text(_facility?.name ?? 'Time Slots'),
+        actions: const [ProfileActionIcon()],
       ),
       body: Column(
         children: [
-          _buildCalendar(theme),
+          _buildHoursSection(theme),
+          _buildDateSelector(theme),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Text(
-                  'Slots for ${_formatDate(_selectedDate)}',
+                  _formatDate(_selectedDate),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: AppTheme.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  onPressed: _blockDate,
-                  icon: const Icon(Icons.block, size: 16),
-                  label: const Text('Block Date'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.error,
+                Text(
+                  '${_slots.length} slots',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -226,42 +393,124 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
           Expanded(child: _buildSlotsList()),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTimeSlot,
-        backgroundColor: AppTheme.primary,
-        foregroundColor: AppTheme.onPrimary,
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildHoursSection(ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainer,
+        border: Border.all(color: AppTheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Operating Hours',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _TimePickerField(
+                  label: 'Opens',
+                  time: _openTime,
+                  onTap: () => _pickTime(true),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _TimePickerField(
+                  label: 'Closes',
+                  time: _closeTime,
+                  onTap: () => _pickTime(false),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _DurationPickerField(
+                  value: _slotDuration,
+                  onChanged: (v) => setState(() => _slotDuration = v),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _canSave
+                    ? ParallelogramButton(
+                        onPressed: _isSaving || _isGenerating ? () {} : _saveOpeningHours,
+                        text: _isSaving ? 'Saving...' : _isGenerating ? 'Generating...' : 'Generate',
+                        icon: Icons.auto_awesome,
+                        variant: ParallelogramButtonVariant.primary,
+                      )
+                    : ParallelogramButton(
+                        onPressed: () {},
+                        text: 'Invalid',
+                        icon: Icons.warning,
+                        variant: ParallelogramButtonVariant.surface,
+                      ),
+              ),
+            ],
+          ),
+          if (!_canSave) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Close time must be after open time',
+              style: TextStyle(
+                color: AppTheme.error,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  Widget _buildCalendar(ThemeData theme) {
-    return TableCalendar(
-      firstDay: DateTime.now().subtract(const Duration(days: 30)),
-      lastDay: DateTime.now().add(const Duration(days: 365)),
-      focusedDay: _selectedDate,
-      selectedDayPredicate: (day) => isSameDay(day, _selectedDate),
-      onDaySelected: (selectedDay, _) {
-        setState(() => _selectedDate = selectedDay);
-        _loadTimeSlots();
-      },
-      calendarStyle: CalendarStyle(
-        todayDecoration: BoxDecoration(
-          color: AppTheme.primary.withValues(alpha: 0.3),
-          shape: BoxShape.circle,
-        ),
-        selectedDecoration: BoxDecoration(
-          color: AppTheme.primary,
-          shape: BoxShape.circle,
-        ),
-        defaultTextStyle: TextStyle(color: AppTheme.onSurface),
-        weekendTextStyle: TextStyle(color: AppTheme.onSurface),
-      ),
-      headerStyle: HeaderStyle(
-        titleTextStyle: theme.textTheme.titleMedium!.copyWith(
-          color: AppTheme.onSurface,
-        ),
-        formatButtonVisible: false,
+  Future<void> _pickTime(bool isOpen) async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: isOpen ? _openTime : _closeTime,
+    );
+    if (time != null) {
+      setState(() {
+        if (isOpen) {
+          _openTime = time;
+        } else {
+          _closeTime = time;
+        }
+      });
+    }
+  }
+
+  Widget _buildDateSelector(ThemeData theme) {
+    return Container(
+      height: 80,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: [
+          for (int i = -3; i <= 21; i++)
+            _DateChip(
+              date: _selectedDate.add(Duration(days: i)),
+              isSelected: isSameDay(_selectedDate.add(Duration(days: i)), _selectedDate),
+              onTap: () {
+                setState(() {
+                  _selectedDate = _selectedDate.add(Duration(days: i));
+                });
+                _loadTimeSlots();
+              },
+            ),
+        ],
       ),
     );
   }
@@ -289,11 +538,10 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.schedule_outlined,
-                size: 48, color: AppTheme.onSurfaceVariant),
+            Icon(Icons.event_busy, size: 48, color: AppTheme.onSurfaceVariant),
             const SizedBox(height: 12),
             Text(
-              'No time slots for this date.',
+              'No slots for this date',
               style: TextStyle(color: AppTheme.onSurfaceVariant),
             ),
           ],
@@ -301,189 +549,228 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
       );
     }
 
-    return ListView(
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      children: [
-        for (final slot in _slots)
-          _SlotTile(
-            slot: slot,
-            onDelete: slot.id != null ? () => _deleteTimeSlot(slot) : null,
+      itemCount: _slots.length,
+      itemBuilder: (context, index) {
+        final slot = _slots[index];
+        final isBlocked = slot.slotType == 'blocked';
+        final isBooked = slot.status == 'booked';
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isBlocked
+                ? AppTheme.error.withValues(alpha: 0.1)
+                : isBooked
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : AppTheme.surfaceContainer,
+            border: Border(
+              left: BorderSide(
+                color: isBlocked 
+                    ? AppTheme.error 
+                    : isBooked 
+                        ? Colors.green 
+                        : AppTheme.primary,
+                width: 3,
+              ),
+              top: BorderSide(color: AppTheme.outlineVariant),
+              bottom: BorderSide(color: AppTheme.outlineVariant),
+            ),
           ),
-      ],
+          child: Row(
+            children: [
+              Icon(
+                isBlocked ? Icons.block : isBooked ? Icons.check_circle : Icons.schedule,
+                size: 18,
+                color: isBlocked ? AppTheme.error : isBooked ? Colors.green : AppTheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _formatTimeRange(slot),
+                  style: TextStyle(
+                    color: AppTheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (isBlocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.error),
+                  ),
+                  child: const Text(
+                    'BLOCKED',
+                    style: TextStyle(
+                      color: AppTheme.error,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else if (isBooked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.green),
+                  ),
+                  child: const Text(
+                    'BOOKED',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                )
+              else
+                GestureDetector(
+                  onTap: () => _deleteSlot(slot),
+                  child: Icon(Icons.delete_outline, size: 18, color: AppTheme.error),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class _SlotTile extends StatelessWidget {
-  final TimeSlotDto slot;
-  final VoidCallback? onDelete;
+class _TimePickerField extends StatelessWidget {
+  final String label;
+  final TimeOfDay time;
+  final VoidCallback onTap;
 
-  const _SlotTile({required this.slot, this.onDelete});
+  const _TimePickerField({
+    required this.label,
+    required this.time,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isBlocked = slot.isBlocked;
-    final isAvailable = slot.isAvailable && !isBlocked;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isBlocked
-            ? AppTheme.error.withValues(alpha: 0.1)
-            : isAvailable
-                ? Colors.green.withValues(alpha: 0.1)
-                : AppTheme.surfaceContainer,
-        border: Border(
-          left: BorderSide(
-            color: isBlocked
-                ? AppTheme.error
-                : isAvailable
-                    ? Colors.greenAccent
-                    : AppTheme.outlineVariant,
-            width: 3,
-          ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppTheme.outlineVariant),
         ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isBlocked
-                ? Icons.block
-                : isAvailable
-                    ? Icons.check_circle
-                    : Icons.cancel,
-            size: 16,
-            color: isBlocked
-                ? AppTheme.error
-                : isAvailable
-                    ? Colors.greenAccent
-                    : AppTheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '${slot.startTime} - ${slot.endTime}',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppTheme.onSurface,
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: AppTheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-          if (isBlocked)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppTheme.error, width: 1),
-              ),
-              child: const Text(
-                'BLOCKED',
-                style: TextStyle(
-                  color: AppTheme.error,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            )
-          else if (isAvailable)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.greenAccent, width: 1),
-              ),
-              child: const Text(
-                'AVAILABLE',
-                style: TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          if (onDelete != null) ...[
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onDelete,
-              child: Icon(Icons.delete_outline, size: 18, color: AppTheme.error),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
 }
 
-class _AddTimeSlotDialog extends StatefulWidget {
-  const _AddTimeSlotDialog();
+class _DurationPickerField extends StatelessWidget {
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  const _DurationPickerField({
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
-  State<_AddTimeSlotDialog> createState() => _AddTimeSlotDialogState();
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppTheme.outlineVariant),
+      ),
+      child: DropdownButton<int>(
+        value: value,
+        isExpanded: true,
+        underline: const SizedBox(),
+        items: [30, 45, 60, 90, 120].map((d) {
+          return DropdownMenuItem(
+            value: d,
+            child: Text('$d min'),
+          );
+        }).toList(),
+        onChanged: (v) {
+          if (v != null) onChanged(v);
+        },
+      ),
+    );
+  }
 }
 
-class _AddTimeSlotDialogState extends State<_AddTimeSlotDialog> {
-  final _startController = TextEditingController();
-  final _endController = TextEditingController();
+class _DateChip extends StatelessWidget {
+  final DateTime date;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  @override
-  void dispose() {
-    _startController.dispose();
-    _endController.dispose();
-    super.dispose();
+  const _DateChip({
+    required this.date,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  bool isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Time Slot'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _startController,
-            decoration: const InputDecoration(
-              labelText: 'Start Time (HH:mm)',
-              hintText: 'e.g. 09:00',
-            ),
+    final isToday = isSameDay(date, DateTime.now());
+    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary : AppTheme.surfaceContainer,
+          border: Border.all(
+            color: isToday ? AppTheme.tertiary : AppTheme.outlineVariant,
+            width: isToday ? 2 : 1,
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _endController,
-            decoration: const InputDecoration(
-              labelText: 'End Time (HH:mm)',
-              hintText: 'e.g. 10:00',
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              dayNames[date.weekday - 1],
+              style: TextStyle(
+                fontSize: 11,
+                color: isSelected ? AppTheme.onPrimary : AppTheme.onSurfaceVariant,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              '${date.day}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? AppTheme.onPrimary : AppTheme.onSurface,
+              ),
+            ),
+          ],
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_startController.text.isNotEmpty &&
-                _endController.text.isNotEmpty) {
-              Navigator.pop(
-                context,
-                _TimeSlotFormResult(
-                  startTime: _startController.text.trim(),
-                  endTime: _endController.text.trim(),
-                ),
-              );
-            }
-          },
-          child: const Text('Add'),
-        ),
-      ],
     );
   }
-}
-
-class _TimeSlotFormResult {
-  final String startTime;
-  final String endTime;
-
-  const _TimeSlotFormResult({required this.startTime, required this.endTime});
 }

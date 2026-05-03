@@ -127,7 +127,7 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.venue.name} - Facilities'),
-        actions: [ProfileActionIcon()],
+        actions: const [ProfileActionIcon()],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
@@ -172,8 +172,8 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
           for (final facility in _facilities)
             FacilityCard(
               name: facility.name,
-              description: facility.description,
-              capacity: facility.capacity,
+              sport: facility.sport,
+              type: facility.type,
               pricePerHour: facility.pricePerHour,
               status: facility.status,
               showActions: true,
@@ -254,10 +254,13 @@ class FacilityEditScreen extends StatefulWidget {
 class _FacilityEditScreenState extends State<FacilityEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _capacityController = TextEditingController();
+  final _sportController = TextEditingController();
+  final _typeController = TextEditingController();
+  final _openSummaryController = TextEditingController();
   final _priceController = TextEditingController();
-  final _amenitiesController = TextEditingController();
+  final _openTimeController = TextEditingController();
+  final _closeTimeController = TextEditingController();
+  final _slotDurationController = TextEditingController();
   bool _isSaving = false;
 
   @override
@@ -265,29 +268,29 @@ class _FacilityEditScreenState extends State<FacilityEditScreen> {
     super.initState();
     if (widget.facility != null) {
       _nameController.text = widget.facility!.name;
-      _descriptionController.text = widget.facility!.description;
-      _capacityController.text = widget.facility!.capacity.toString();
-      _priceController.text = widget.facility!.pricePerHour.toString();
-      _amenitiesController.text = widget.facility!.amenities.join(', ');
+      _sportController.text = widget.facility!.sport;
+      _typeController.text = widget.facility!.type;
+      _openSummaryController.text = widget.facility!.openSummary;
+      _priceController.text = widget.facility!.pricePerHour;
+      _openTimeController.text = widget.facility!.openTime ?? '';
+      _closeTimeController.text = widget.facility!.closeTime ?? '';
+      _slotDurationController.text = widget.facility!.slotDurationMins?.toString() ?? '60';
+    } else {
+      _slotDurationController.text = '60';
     }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _descriptionController.dispose();
-    _capacityController.dispose();
+    _sportController.dispose();
+    _typeController.dispose();
+    _openSummaryController.dispose();
     _priceController.dispose();
-    _amenitiesController.dispose();
+    _openTimeController.dispose();
+    _closeTimeController.dispose();
+    _slotDurationController.dispose();
     super.dispose();
-  }
-
-  List<String> get _amenitiesList {
-    return _amenitiesController.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
   }
 
   Future<void> _saveFacility() async {
@@ -305,20 +308,28 @@ class _FacilityEditScreenState extends State<FacilityEditScreen> {
           token: token,
           facilityId: widget.facility!.id,
           name: _nameController.text.trim(),
-          description: _descriptionController.text.trim(),
-          capacity: int.parse(_capacityController.text.trim()),
+          sport: _sportController.text.trim(),
+          type: _typeController.text.trim(),
+          openSummary: _openSummaryController.text.trim(),
           pricePerHour: double.parse(_priceController.text.trim()),
-          amenities: _amenitiesList,
+          status: widget.facility!.status,
+          openTime: _openTimeController.text.trim().isEmpty ? null : _openTimeController.text.trim(),
+          closeTime: _closeTimeController.text.trim().isEmpty ? null : _closeTimeController.text.trim(),
+          slotDurationMins: int.tryParse(_slotDurationController.text.trim()),
         );
       } else {
         await controller.apiClient.createFacility(
           token: token,
           venueId: widget.venueId,
           name: _nameController.text.trim(),
-          description: _descriptionController.text.trim(),
-          capacity: int.parse(_capacityController.text.trim()),
+          sport: _sportController.text.trim(),
+          type: _typeController.text.trim(),
+          openSummary: _openSummaryController.text.trim(),
           pricePerHour: double.parse(_priceController.text.trim()),
-          amenities: _amenitiesList,
+          status: 'active',
+          openTime: _openTimeController.text.trim().isEmpty ? null : _openTimeController.text.trim(),
+          closeTime: _closeTimeController.text.trim().isEmpty ? null : _closeTimeController.text.trim(),
+          slotDurationMins: int.tryParse(_slotDurationController.text.trim()),
         );
       }
 
@@ -350,7 +361,7 @@ class _FacilityEditScreenState extends State<FacilityEditScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? 'Edit Facility' : 'Add Facility'),
-        actions: [ProfileActionIcon()],
+        actions: const [ProfileActionIcon()],
       ),
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
@@ -372,65 +383,92 @@ class _FacilityEditScreenState extends State<FacilityEditScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _descriptionController,
+                      controller: _sportController,
                       decoration: const InputDecoration(
-                        labelText: 'Description',
-                        hintText: 'Enter facility description',
+                        labelText: 'Sport',
+                        hintText: 'e.g. Football, Basketball',
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Sport is required'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _typeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Type',
+                        hintText: 'e.g. Indoor, Outdoor',
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Type is required'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _openSummaryController,
+                      decoration: const InputDecoration(
+                        labelText: 'Open Summary',
+                        hintText: 'Brief description',
                       ),
                       maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Price/Hour',
+                        hintText: 'e.g. 1500',
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Price is required';
+                        }
+                        if (double.tryParse(v.trim()) == null) {
+                          return 'Enter a valid amount';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Operating Hours',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: TextFormField(
-                            controller: _capacityController,
+                            controller: _openTimeController,
                             decoration: const InputDecoration(
-                              labelText: 'Capacity',
-                              hintText: 'e.g. 20',
+                              labelText: 'Opens',
+                              hintText: '09:00',
                             ),
-                            keyboardType: TextInputType.number,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Capacity is required';
-                              }
-                              if (int.tryParse(v.trim()) == null) {
-                                return 'Enter a valid number';
-                              }
-                              return null;
-                            },
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
-                            controller: _priceController,
+                            controller: _closeTimeController,
                             decoration: const InputDecoration(
-                              labelText: 'Price/Hour',
-                              hintText: 'e.g. 1500',
+                              labelText: 'Closes',
+                              hintText: '22:00',
                             ),
-                            keyboardType: TextInputType.number,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Price is required';
-                              }
-                              if (double.tryParse(v.trim()) == null) {
-                                return 'Enter a valid amount';
-                              }
-                              return null;
-                            },
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
-                      controller: _amenitiesController,
+                      controller: _slotDurationController,
                       decoration: const InputDecoration(
-                        labelText: 'Amenities (comma-separated)',
-                        hintText: 'e.g. Changing Room, Shower, Parking',
+                        labelText: 'Slot Duration (minutes)',
+                        hintText: '60',
                       ),
-                      maxLines: 2,
+                      keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 24),
                     SizedBox(

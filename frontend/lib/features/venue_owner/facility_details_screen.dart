@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
+import 'package:frontend/features/venue_owner/time_slots_management_screen.dart';
 
 class FacilityDetailsScreen extends StatelessWidget {
   final VenueOwnerFacilityDto facility;
@@ -43,45 +44,61 @@ class FacilityDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  facility.description,
+                  'Sport: ${facility.sport}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.onSurfaceVariant,
                       ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Type: ${facility.type}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.onSurfaceVariant,
+                      ),
+                ),
+                if (facility.openSummary.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    facility.openSummary,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.people, size: 16, color: AppTheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${facility.capacity} people',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
                     Icon(Icons.currency_rupee, size: 16, color: AppTheme.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Text(
-                      '${facility.pricePerHour.toStringAsFixed(0)}/hr',
+                      '${facility.pricePerHour}/hr',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),
-                if (facility.amenities.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 6,
-                    children: facility.amenities
-                        .map(
-                          (a) => Chip(
-                            label: Text(a),
-                            labelStyle: const TextStyle(fontSize: 10),
-                            padding: EdgeInsets.zero,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TimeSlotsManagementScreen(
+                            facilityId: facility.id,
+                            facility: facility,
                           ),
-                        )
-                        .toList(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.schedule, size: 18),
+                    label: const Text('Manage Time Slots'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primary,
+                      side: const BorderSide(color: AppTheme.primary),
+                    ),
                   ),
-                ],
+                ),
               ],
             ),
           ),

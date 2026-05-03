@@ -25,25 +25,31 @@ type Venue struct {
 }
 
 type FacilityInput struct {
-	Name         string `json:"name"`
-	Sport        string `json:"sport"`
-	Type         string `json:"type"`
-	OpenSummary  string `json:"open_summary"`
-	PricePerHour string `json:"price_per_hour"`
-	Status       string `json:"status"`
+	Name              string  `json:"name"`
+	Sport             string  `json:"sport"`
+	Type              string  `json:"type"`
+	OpenSummary      string  `json:"open_summary"`
+	PricePerHour     string  `json:"price_per_hour"`
+	Status           string  `json:"status"`
+	OpenTime         *string `json:"open_time,omitempty"`
+	CloseTime        *string `json:"close_time,omitempty"`
+	SlotDurationMins *int   `json:"slot_duration_mins,omitempty"`
 }
 
 type Facility struct {
-	ID           int64     `json:"id"`
-	VenueID      int64     `json:"venue_id"`
-	Name         string    `json:"name"`
-	Sport        string    `json:"sport"`
-	Type         string    `json:"type"`
-	OpenSummary  string    `json:"open_summary"`
-	PricePerHour string    `json:"price_per_hour"`
-	Status       string    `json:"status"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID                int64      `json:"id"`
+	VenueID         int64      `json:"venue_id"`
+	Name           string     `json:"name"`
+	Sport          string     `json:"sport"`
+	Type           string     `json:"type"`
+	OpenSummary   string     `json:"open_summary"`
+	PricePerHour  string     `json:"price_per_hour"`
+	Status        string     `json:"status"`
+	OpenTime      *string    `json:"open_time,omitempty"`
+	CloseTime     *string    `json:"close_time,omitempty"`
+	SlotDurationMins *int    `json:"slot_duration_mins,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
 }
 
 type TimeSlotInput struct {

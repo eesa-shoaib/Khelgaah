@@ -157,6 +157,34 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMiddleware, ownerOnly m
 		writeOwnerResult(w, item, err, "failed to create time slot")
 	}))
 
+	mux.Handle("GET /api/v1/venue-owner/facilities/{id}/time-slots", protected(func(w http.ResponseWriter, r *http.Request) {
+		user, _ := middleware.CurrentUserFromContext(r.Context())
+		facilityID, err := httpx.ParseID(r, "id")
+		if err != nil {
+			httpx.WriteError(w, http.StatusBadRequest, "invalid facility id")
+			return
+		}
+		dateStr := r.URL.Query().Get("date")
+		if dateStr == "" {
+			httpx.WriteError(w, http.StatusBadRequest, "date is required")
+			return
+		}
+		from := dateStr + "T00:00:00Z"
+		to := dateStr + "T23:59:59Z"
+		items, err := h.service.ListAvailability(
+			r.Context(),
+			user.ID,
+			facilityID,
+			from,
+			to,
+		)
+		if err != nil {
+			writeOwnerError(w, err, "failed to list time slots")
+			return
+		}
+		httpx.WriteJSON(w, http.StatusOK, map[string]any{"slots": items})
+	}))
+
 	mux.Handle("GET /api/v1/venue-owner/facilities/{id}/availability", protected(func(w http.ResponseWriter, r *http.Request) {
 		user, _ := middleware.CurrentUserFromContext(r.Context())
 		facilityID, err := httpx.ParseID(r, "id")
@@ -192,6 +220,21 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMiddleware, ownerOnly m
 		}
 		item, err := h.service.UpdateTimeSlot(r.Context(), user.ID, slotID, input)
 		writeOwnerResult(w, item, err, "failed to update time slot")
+	}))
+
+	mux.Handle("DELETE /api/v1/venue-owner/time-slots/{id}", protected(func(w http.ResponseWriter, r *http.Request) {
+		user, _ := middleware.CurrentUserFromContext(r.Context())
+		slotID, err := httpx.ParseID(r, "id")
+		if err != nil {
+			httpx.WriteError(w, http.StatusBadRequest, "invalid time slot id")
+			return
+		}
+		err = h.service.DeleteTimeSlot(r.Context(), user.ID, slotID)
+		if err != nil {
+			writeOwnerError(w, err, "failed to delete time slot")
+			return
+		}
+		httpx.WriteJSON(w, http.StatusOK, map[string]any{"deleted": true})
 	}))
 
 	mux.Handle("POST /api/v1/venue-owner/facilities/{id}/block-dates", protected(func(w http.ResponseWriter, r *http.Request) {

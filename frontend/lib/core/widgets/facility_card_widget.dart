@@ -3,9 +3,10 @@ import 'package:frontend/core/theme/app_theme.dart';
 
 class FacilityCard extends StatelessWidget {
   final String name;
-  final String description;
-  final int capacity;
-  final double pricePerHour;
+  final String sport;
+  final String type;
+  final String openSummary;
+  final String pricePerHour;
   final String status;
   final bool showActions;
   final VoidCallback? onEdit;
@@ -15,8 +16,9 @@ class FacilityCard extends StatelessWidget {
   const FacilityCard({
     super.key,
     required this.name,
-    this.description = '',
-    required this.capacity,
+    this.sport = '',
+    this.type = '',
+    this.openSummary = '',
     required this.pricePerHour,
     required this.status,
     this.showActions = false,
@@ -63,13 +65,30 @@ class FacilityCard extends StatelessWidget {
                 _StatusDot(status: status),
               ],
             ),
-            if (description.isNotEmpty) ...[
+            if (sport.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Sport: $sport',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppTheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (type.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(
+                'Type: $type',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppTheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            if (openSummary.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                description,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                openSummary,
+                style: theme.textTheme.bodySmall?.copyWith(
                   color: AppTheme.onSurfaceVariant,
-                  fontSize: 12,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -78,24 +97,11 @@ class FacilityCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.people, size: 14, color: AppTheme.onSurfaceVariant),
-                const SizedBox(width: 6),
-                Text(
-                  'Capacity: $capacity',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 16),
                 Icon(Icons.currency_rupee, size: 14, color: AppTheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   '$pricePerHour/hr',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
                 const Spacer(),
                 _StatusLabel(status: status),

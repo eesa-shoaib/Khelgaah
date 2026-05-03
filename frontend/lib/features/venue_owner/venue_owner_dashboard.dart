@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/core/widgets/booking_card_widget.dart';
 import 'package:frontend/core/widgets/app_facility_card.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/core/widgets/stats_card_widget.dart';
@@ -19,7 +18,6 @@ class VenueOwnerDashboard extends StatefulWidget {
 
 class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
   DashboardStats? _stats;
-  int _venuesCount = 0;
   bool _isLoading = true;
   String? _error;
   bool _isInitialized = false;
@@ -57,21 +55,13 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
         });
       }
 
-      // Load dashboard stats
       try {
         final stats = await controller.apiClient
             .getVenueOwnerDashboard(token: token)
             .timeout(const Duration(seconds: 10));
         if (mounted) {
           setState(() {
-            _stats = stats ??
-                const DashboardStats(
-                  totalBookings: 0,
-                  totalRevenue: 0.0,
-                  occupancyRate: 0.0,
-                  pendingApprovals: 0,
-                  recentBookings: [],
-                );
+            _stats = stats;
           });
         }
       } catch (e) {
@@ -81,20 +71,6 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
             _error = 'Failed to load dashboard';
           });
         }
-      }
-
-      // Load venues count (non-critical)
-      try {
-        final venues = await controller.apiClient
-            .listVenues(token: token)
-            .timeout(const Duration(seconds: 10));
-        if (mounted) {
-          setState(() {
-            _venuesCount = venues.length;
-          });
-        }
-      } catch (e) {
-        debugPrint('Venues count error: $e');
       }
 
       if (mounted) {
@@ -147,17 +123,14 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
 
   Widget _buildDashboard(UserProfile? user) {
     final stats = _stats!;
+    final bottom = MediaQuery.of(context).padding.bottom;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, bottom + 90),
       children: [
         _WelcomeCard(user: user),
         const SizedBox(height: 20),
-        _StatsGrid(
-          venuesCount: _venuesCount,
-          totalBookings: stats.totalBookings,
-          pendingApprovals: stats.pendingApprovals,
-        ),
+        _StatsGrid(stats: stats),
         const SizedBox(height: 24),
         AppFacilityCard(
           name: 'View All Bookings',
@@ -170,17 +143,6 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
           category: 'Venues',
           onTap: () => _navigateToTab(1),
         ),
-        const SizedBox(height: 24),
-        const Text(
-          'Recent Bookings',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 12),
-        _RecentBookingsList(bookings: stats.recentBookings),
       ],
     );
   }
@@ -206,15 +168,9 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
 }
 
 class _StatsGrid extends StatelessWidget {
-  final int venuesCount;
-  final int totalBookings;
-  final int pendingApprovals;
+  final DashboardStats stats;
 
-  const _StatsGrid({
-    required this.venuesCount,
-    required this.totalBookings,
-    required this.pendingApprovals,
-  });
+  const _StatsGrid({required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -232,72 +188,31 @@ class _StatsGrid extends StatelessWidget {
             StatsCard(
               icon: Icons.business,
               label: 'Venues',
-              value: '$venuesCount',
+              value: '${stats.totalVenues}',
+            ),
+            StatsCard(
+              icon: Icons.sports,
+              label: 'Facilities',
+              value: '${stats.totalFacilities}',
             ),
             StatsCard(
               icon: Icons.event_note,
               label: 'Bookings',
-              value: '$totalBookings',
+              value: '${stats.totalBookings}',
             ),
             StatsCard(
-              icon: Icons.pending_actions,
-              label: 'Pending',
-              value: '$pendingApprovals',
-              color: Colors.amber,
+              icon: Icons.payments,
+              label: 'Revenue',
+              value: 'PKR ${stats.revenue}',
+            ),
+            StatsCard(
+              icon: Icons.trending_up,
+              label: 'Occupancy',
+              value: '${stats.occupancyRate}%',
             ),
           ],
         );
       },
-    );
-  }
-}
-
-class _RecentBookingsList extends StatelessWidget {
-  final List<VenueOwnerBookingDto> bookings;
-
-  const _RecentBookingsList({required this.bookings});
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (bookings.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceContainer,
-          border: Border(
-            left: BorderSide(color: AppTheme.primary, width: 3),
-            bottom: BorderSide(color: AppTheme.outlineVariant, width: 1),
-            top: BorderSide(color: AppTheme.outlineVariant, width: 1),
-          ),
-        ),
-        child: const Center(
-          child: Text(
-            'No recent bookings',
-            style: TextStyle(color: AppTheme.onSurfaceVariant),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: bookings.take(5).map((booking) {
-        return BookingCard(
-          key: ValueKey(booking.id),
-          customerName: booking.customerName,
-          facilityName: booking.facilityName,
-          date: _formatDate(booking.startTime),
-          time: '${_formatTime(booking.startTime)} - ${_formatTime(booking.endTime)}',
-          status: booking.status,
-        );
-      }).toList(),
     );
   }
 }

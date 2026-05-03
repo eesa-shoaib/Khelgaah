@@ -211,21 +211,27 @@ class VenueOwnerFacilityDto {
   final int id;
   final int venueId;
   final String name;
-  final String description;
-  final int capacity;
-  final double pricePerHour;
+  final String sport;
+  final String type;
+  final String openSummary;
+  final String pricePerHour;
   final String status;
-  final List<String> amenities;
+  final String? openTime;
+  final String? closeTime;
+  final int? slotDurationMins;
 
   const VenueOwnerFacilityDto({
     required this.id,
     required this.venueId,
     required this.name,
-    required this.description,
-    required this.capacity,
+    required this.sport,
+    required this.type,
+    required this.openSummary,
     required this.pricePerHour,
     required this.status,
-    this.amenities = const [],
+    this.openTime,
+    this.closeTime,
+    this.slotDurationMins,
   });
 
   factory VenueOwnerFacilityDto.fromJson(Map<String, dynamic> json) =>
@@ -233,14 +239,14 @@ class VenueOwnerFacilityDto {
         id: parseNum(json['id'])?.toInt() ?? 0,
         venueId: parseNum(json['venue_id'])?.toInt() ?? 0,
         name: json['name'] as String,
-        description: json['description'] as String? ?? '',
-        capacity: parseNum(json['capacity'])?.toInt() ?? 0,
-        pricePerHour: parseNum(json['price_per_hour'])?.toDouble() ?? 0.0,
+        sport: json['sport'] as String? ?? '',
+        type: json['type'] as String? ?? '',
+        openSummary: json['open_summary'] as String? ?? '',
+        pricePerHour: json['price_per_hour'] as String? ?? '0',
         status: json['status'] as String? ?? 'pending',
-        amenities: (json['amenities'] as List<dynamic>?)
-                ?.cast<String>()
-                .toList() ??
-            const [],
+        openTime: json['open_time'] as String?,
+        closeTime: json['close_time'] as String?,
+        slotDurationMins: parseNum(json['slot_duration_mins'])?.toInt(),
       );
 }
 
@@ -288,105 +294,84 @@ class VenueOwnerBookingDto {
 }
 
 class DashboardStats {
+  final int totalVenues;
+  final int totalFacilities;
   final int totalBookings;
-  final double totalRevenue;
-  final double occupancyRate;
-  final int pendingApprovals;
-  final List<VenueOwnerBookingDto> recentBookings;
+  final String revenue;
+  final String occupancyRate;
 
   const DashboardStats({
+    required this.totalVenues,
+    required this.totalFacilities,
     required this.totalBookings,
-    required this.totalRevenue,
+    required this.revenue,
     required this.occupancyRate,
-    required this.pendingApprovals,
-    required this.recentBookings,
   });
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) => DashboardStats(
+        totalVenues: parseNum(json['total_venues'])?.toInt() ?? 0,
+        totalFacilities: parseNum(json['total_facilities'])?.toInt() ?? 0,
         totalBookings: parseNum(json['total_bookings'])?.toInt() ?? 0,
-        totalRevenue: parseNum(json['total_revenue'])?.toDouble() ?? 0.0,
-        occupancyRate: parseNum(json['occupancy_rate'])?.toDouble() ?? 0.0,
-        pendingApprovals: parseNum(json['pending_approvals'])?.toInt() ?? 0,
-        recentBookings: (json['recent_bookings'] as List<dynamic>?)
-                ?.cast<Map<String, dynamic>>()
-                .map(VenueOwnerBookingDto.fromJson)
-                .toList() ??
-            const [],
+        revenue: json['revenue'] as String? ?? '0',
+        occupancyRate: json['occupancy_rate'] as String? ?? '0',
       );
 }
 
 class TimeSlotDto {
   final int? id;
-  final DateTime date;
-  final String startTime;
-  final String endTime;
-  final bool isAvailable;
-  final bool isBlocked;
+  final DateTime startsAt;
+  final DateTime endsAt;
+  final String slotType;
+  final String status;
+  final String? reason;
 
   const TimeSlotDto({
     this.id,
-    required this.date,
-    required this.startTime,
-    required this.endTime,
-    required this.isAvailable,
-    this.isBlocked = false,
+    required this.startsAt,
+    required this.endsAt,
+    required this.slotType,
+    required this.status,
+    this.reason,
   });
 
   factory TimeSlotDto.fromJson(Map<String, dynamic> json) => TimeSlotDto(
         id: parseNum(json['id'])?.toInt(),
-        date: DateTime.parse(json['date'] as String),
-        startTime: json['start_time'] as String,
-        endTime: json['end_time'] as String,
-        isAvailable: json['is_available'] as bool? ?? true,
-        isBlocked: json['is_blocked'] as bool? ?? false,
+        startsAt: DateTime.parse(json['starts_at'] as String),
+        endsAt: DateTime.parse(json['ends_at'] as String),
+        slotType: json['slot_type'] as String? ?? 'available',
+        status: json['status'] as String? ?? 'active',
+        reason: json['reason'] as String?,
+      );
+}
+
+class AnalyticsPoint {
+  final String day;
+  final int bookings;
+  final String revenue;
+
+  const AnalyticsPoint({
+    required this.day,
+    required this.bookings,
+    required this.revenue,
+  });
+
+  factory AnalyticsPoint.fromJson(Map<String, dynamic> json) => AnalyticsPoint(
+        day: json['day'] as String? ?? '',
+        bookings: parseNum(json['bookings'])?.toInt() ?? 0,
+        revenue: json['revenue'] as String? ?? '0',
       );
 }
 
 class AnalyticsData {
-  final List<ChartDataPoint> revenueData;
-  final List<ChartDataPoint> bookingsByFacility;
-  final List<ChartDataPoint> occupancyByFacility;
-  final List<ChartDataPoint> peakHours;
+  final List<AnalyticsPoint> analytics;
 
-  const AnalyticsData({
-    required this.revenueData,
-    required this.bookingsByFacility,
-    required this.occupancyByFacility,
-    required this.peakHours,
-  });
+  const AnalyticsData({required this.analytics});
 
   factory AnalyticsData.fromJson(Map<String, dynamic> json) => AnalyticsData(
-        revenueData: (json['revenue_data'] as List<dynamic>?)
+        analytics: (json['analytics'] as List<dynamic>?)
                 ?.cast<Map<String, dynamic>>()
-                .map(ChartDataPoint.fromJson)
+                .map(AnalyticsPoint.fromJson)
                 .toList() ??
             const [],
-        bookingsByFacility: (json['bookings_by_facility'] as List<dynamic>?)
-                ?.cast<Map<String, dynamic>>()
-                .map(ChartDataPoint.fromJson)
-                .toList() ??
-            const [],
-        occupancyByFacility: (json['occupancy_by_facility'] as List<dynamic>?)
-                ?.cast<Map<String, dynamic>>()
-                .map(ChartDataPoint.fromJson)
-                .toList() ??
-            const [],
-        peakHours: (json['peak_hours'] as List<dynamic>?)
-                ?.cast<Map<String, dynamic>>()
-                .map(ChartDataPoint.fromJson)
-                .toList() ??
-            const [],
-      );
-}
-
-class ChartDataPoint {
-  final String label;
-  final double value;
-
-  const ChartDataPoint({required this.label, required this.value});
-
-  factory ChartDataPoint.fromJson(Map<String, dynamic> json) => ChartDataPoint(
-        label: json['label'] as String? ?? '',
-        value: parseNum(json['value'])?.toDouble() ?? 0.0,
       );
 }

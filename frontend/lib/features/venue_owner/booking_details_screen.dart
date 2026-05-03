@@ -254,7 +254,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           theme,
           Icons.currency_rupee,
           'Total Amount',
-          'PKR ${booking.totalAmount.toStringAsFixed(0)}',
+          'PKR ${booking.totalAmount}',
         ),
         _buildInfoRow(
           theme,

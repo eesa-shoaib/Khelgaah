@@ -103,6 +103,13 @@ func (s *Service) UpdateTimeSlot(ctx context.Context, ownerID, slotID int64, inp
 	return s.repo.UpdateTimeSlot(ctx, ownerID, slotID, slotInput)
 }
 
+func (s *Service) DeleteTimeSlot(ctx context.Context, ownerID, slotID int64) error {
+	if slotID <= 0 {
+		return fmt.Errorf("%w: slot id must be positive", ErrInvalidInput)
+	}
+	return s.repo.DeleteTimeSlot(ctx, ownerID, slotID)
+}
+
 func (s *Service) BlockDates(ctx context.Context, ownerID, facilityID int64, input BlockDatesInput) ([]TimeSlot, error) {
 	if _, err := time.Parse("2006-01-02", input.StartDate); err != nil {
 		return nil, fmt.Errorf("%w: start_date must use YYYY-MM-DD", ErrInvalidInput)

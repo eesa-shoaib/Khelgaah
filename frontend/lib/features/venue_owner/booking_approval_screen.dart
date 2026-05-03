@@ -184,7 +184,7 @@ class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
                           _DetailRow(
                             icon: Icons.currency_rupee,
                             label: 'Amount',
-                            value: 'PKR ${_booking!.totalAmount.toStringAsFixed(0)}',
+                            value: 'PKR ${_booking!.totalAmount}',
                           ),
                           const SizedBox(height: 12),
                           _DetailRow(

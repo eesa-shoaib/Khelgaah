@@ -256,47 +256,51 @@ class VenuesListScreenState extends State<VenuesListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Venues'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ParallelogramButton(
-              text: 'Add Venue',
-              icon: Icons.add,
-              onPressed: () => showAddVenueDialog(),
-              variant: ParallelogramButtonVariant.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        actions: const [ProfileActionIcon()],
+      ),
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _loadVenues,
+            child: _venues.isEmpty
+                ? _EmptyState(onAdd: () => showAddVenueDialog())
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _venues.length,
+                    itemBuilder: (context, index) {
+                      final venue = _venues[index];
+                      return VenueCard(
+                        key: ValueKey(venue.id),
+                        name: venue.name,
+                        city: venue.city,
+                        facilityCount: venue.facilityCount,
+                        status: venue.status,
+                        showActions: true,
+                        onView: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VenueDetailsScreen(venue: venue),
+                          ),
+                        ),
+                        onEdit: () => _editVenue(venue),
+                        onDelete: () => _deleteVenue(venue),
+                      );
+                    },
+                  ),
+          ),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: SafeArea(
+              child: ParallelogramButton(
+                onPressed: () => showAddVenueDialog(),
+                text: 'Add Venue',
+                icon: Icons.add,
+                variant: ParallelogramButtonVariant.primary,
+              ),
             ),
           ),
-          const ProfileActionIcon(),
         ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadVenues,
-        child: _venues.isEmpty
-            ? _EmptyState(onAdd: () => showAddVenueDialog())
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _venues.length,
-                itemBuilder: (context, index) {
-                  final venue = _venues[index];
-                  return VenueCard(
-                    key: ValueKey(venue.id),
-                    name: venue.name,
-                    city: venue.city,
-                    facilityCount: venue.facilityCount,
-                    status: venue.status,
-                    showActions: true,
-                    onView: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => VenueDetailsScreen(venue: venue),
-                      ),
-                    ),
-                    onEdit: () => _editVenue(venue),
-                    onDelete: () => _deleteVenue(venue),
-                  );
-                },
-              ),
       ),
     );
   }

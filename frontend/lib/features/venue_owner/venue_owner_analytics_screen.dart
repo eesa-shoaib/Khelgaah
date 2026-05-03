@@ -107,26 +107,20 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
   }
 
   Widget _buildBody(ThemeData theme) {
+    final analytics = _data!.analytics;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _buildDateFilter(theme),
         const SizedBox(height: 20),
+        _buildSectionTitle(theme, 'Bookings Over Time'),
+        const SizedBox(height: 12),
+        _buildLineChart(analytics, 'Bookings'),
+        const SizedBox(height: 24),
         _buildSectionTitle(theme, 'Revenue Over Time'),
         const SizedBox(height: 12),
-        _buildLineChart(_data!.revenueData, 'Revenue (PKR)'),
-        const SizedBox(height: 24),
-        _buildSectionTitle(theme, 'Bookings by Facility'),
-        const SizedBox(height: 12),
-        _buildBarChart(_data!.bookingsByFacility, 'Bookings'),
-        const SizedBox(height: 24),
-        _buildSectionTitle(theme, 'Occupancy Rate by Facility'),
-        const SizedBox(height: 12),
-        _buildBarChart(_data!.occupancyByFacility, 'Occupancy %'),
-        const SizedBox(height: 24),
-        _buildSectionTitle(theme, 'Peak Hours Analysis'),
-        const SizedBox(height: 12),
-        _buildBarChart(_data!.peakHours, 'Bookings'),
+        _buildRevenueChart(analytics),
       ],
     );
   }
@@ -149,8 +143,9 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
                   ? '${_formatDate(_dateFrom!)} → ${_formatDate(_dateTo!)}'
                   : 'Select date range',
               style: TextStyle(
-                color:
-                    _dateFrom != null ? AppTheme.onSurface : AppTheme.onSurfaceVariant,
+                color: _dateFrom != null
+                    ? AppTheme.onSurface
+                    : AppTheme.onSurfaceVariant,
                 fontSize: 12,
               ),
             ),
@@ -170,9 +165,9 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
     );
   }
 
-  Widget _buildLineChart(List<ChartDataPoint> data, String label) {
+  Widget _buildLineChart(List<AnalyticsPoint> data, String label) {
     if (data.isEmpty) {
-      return _EmptyChart(message: 'No revenue data available.');
+      return _EmptyChart(message: 'No $label data available.');
     }
 
     return Container(
@@ -187,7 +182,7 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: _getInterval(data),
+            horizontalInterval: _getInterval(data.map((e) => e.bookings.toDouble()).toList()),
             getDrawingHorizontalLine: (value) => FlLine(
               color: AppTheme.outlineVariant,
               strokeWidth: 1,
@@ -214,9 +209,9 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
                     return const SizedBox.shrink();
                   }
                   return Text(
-                    data[index].label.length > 5
-                        ? data[index].label.substring(0, 5)
-                        : data[index].label,
+                    data[index].day.length > 5
+                        ? data[index].day.substring(0, 5)
+                        : data[index].day,
                     style: const TextStyle(fontSize: 9, color: AppTheme.onSurfaceVariant),
                   );
                 },
@@ -232,7 +227,7 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
           lineBarsData: [
             LineChartBarData(
               spots: data.asMap().entries.map((e) {
-                return FlSpot(e.key.toDouble(), e.value.value);
+                return FlSpot(e.key.toDouble(), e.value.bookings.toDouble());
               }).toList(),
               isCurved: true,
               color: AppTheme.primary,
@@ -249,12 +244,10 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
     );
   }
 
-  Widget _buildBarChart(List<ChartDataPoint> data, String label) {
+  Widget _buildRevenueChart(List<AnalyticsPoint> data) {
     if (data.isEmpty) {
-      return _EmptyChart(message: 'No data available.');
+      return _EmptyChart(message: 'No revenue data available.');
     }
-
-    final maxVal = data.map((e) => e.value).reduce((a, b) => a > b ? a : b);
 
     return Container(
       height: 200,
@@ -263,13 +256,13 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
         color: AppTheme.surfaceContainer,
         border: Border.all(color: AppTheme.outlineVariant),
       ),
-      child: BarChart(
-        BarChartData(
-          maxY: maxVal * 1.2,
+      child: LineChart(
+        LineChartData(
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: maxVal / 4,
+            horizontalInterval: _getInterval(
+                data.map((e) => double.tryParse(e.revenue) ?? 0.0).toList()),
             getDrawingHorizontalLine: (value) => FlLine(
               color: AppTheme.outlineVariant,
               strokeWidth: 1,
@@ -279,9 +272,9 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 40,
+                reservedSize: 50,
                 getTitlesWidget: (value, _) => Text(
-                  value.toInt().toString(),
+                  '${value.toInt()}',
                   style: const TextStyle(fontSize: 10, color: AppTheme.onSurfaceVariant),
                 ),
               ),
@@ -296,9 +289,9 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
                     return const SizedBox.shrink();
                   }
                   return Text(
-                    data[index].label.length > 8
-                        ? data[index].label.substring(0, 8)
-                        : data[index].label,
+                    data[index].day.length > 5
+                        ? data[index].day.substring(0, 5)
+                        : data[index].day,
                     style: const TextStyle(fontSize: 9, color: AppTheme.onSurfaceVariant),
                   );
                 },
@@ -311,27 +304,30 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
             show: true,
             border: Border.all(color: AppTheme.outlineVariant),
           ),
-          barGroups: data.asMap().entries.map((e) {
-            return BarChartGroupData(
-              x: e.key,
-              barRods: [
-                BarChartRodData(
-                  toY: e.value.value,
-                  color: AppTheme.primary,
-                  width: 16,
-                  borderRadius: BorderRadius.zero,
-                ),
-              ],
-            );
-          }).toList(),
+          lineBarsData: [
+            LineChartBarData(
+              spots: data.asMap().entries.map((e) {
+                return FlSpot(e.key.toDouble(),
+                    double.tryParse(e.value.revenue) ?? 0.0);
+              }).toList(),
+              isCurved: true,
+              color: Colors.green,
+              barWidth: 2,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                color: Colors.green.withValues(alpha: 0.1),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  double _getInterval(List<ChartDataPoint> data) {
-    if (data.isEmpty) return 100;
-    final maxVal = data.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+  double _getInterval(List<double> values) {
+    if (values.isEmpty) return 100;
+    final maxVal = values.reduce((a, b) => a > b ? a : b);
     return maxVal / 4;
   }
 }

@@ -25,6 +25,7 @@ type Repository interface {
 	CreateTimeSlot(ctx context.Context, ownerID, facilityID int64, input TimeSlotInput) (TimeSlot, error)
 	ListAvailability(ctx context.Context, ownerID, facilityID int64, from, to time.Time) ([]TimeSlot, error)
 	UpdateTimeSlot(ctx context.Context, ownerID, slotID int64, input TimeSlotInput) (TimeSlot, error)
+	DeleteTimeSlot(ctx context.Context, ownerID, slotID int64) error
 	BlockDates(ctx context.Context, ownerID, facilityID int64, input BlockDatesInput) ([]TimeSlot, error)
 	ListBookings(ctx context.Context, ownerID int64, status string) ([]Booking, error)
 	GetBooking(ctx context.Context, ownerID, bookingID int64) (Booking, error)
@@ -103,18 +104,18 @@ func (r *repository) DeleteVenue(ctx context.Context, ownerID, venueID int64) er
 
 func (r *repository) CreateFacility(ctx context.Context, ownerID, venueID int64, input FacilityInput) (Facility, error) {
 	query := `
-		INSERT INTO facilities (venue_id, name, sport, type, open_summary, price_per_hour, status)
-		SELECT id, $3, $4, $5, $6, $7::numeric, $8
+		INSERT INTO facilities (venue_id, name, sport, type, open_summary, price_per_hour, status, open_time, close_time, slot_duration_mins)
+		SELECT id, $3, $4, $5, $6, $7::numeric, $8, $9, $10, $11
 		FROM venues
 		WHERE id = $1 AND owner_user_id = $2
-		RETURNING id, venue_id, name, sport, type, open_summary, price_per_hour::text, status, created_at, updated_at
+		RETURNING id, venue_id, name, sport, type, open_summary, price_per_hour::text, status, open_time, close_time, slot_duration_mins, created_at, updated_at
 	`
-	return scanFacility(r.db.QueryRow(ctx, query, venueID, ownerID, input.Name, input.Sport, input.Type, input.OpenSummary, input.PricePerHour, input.Status))
+	return scanFacility(r.db.QueryRow(ctx, query, venueID, ownerID, input.Name, input.Sport, input.Type, input.OpenSummary, input.PricePerHour, input.Status, input.OpenTime, input.CloseTime, input.SlotDurationMins))
 }
 
 func (r *repository) ListFacilities(ctx context.Context, ownerID, venueID int64) ([]Facility, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT f.id, f.venue_id, f.name, f.sport, f.type, f.open_summary, f.price_per_hour::text, f.status, f.created_at, f.updated_at
+		SELECT f.id, f.venue_id, f.name, f.sport, f.type, COALESCE(f.open_summary, ''), COALESCE(f.price_per_hour::text, '0'), COALESCE(f.status, 'active'), f.open_time, f.close_time, f.slot_duration_mins, f.created_at, f.updated_at
 		FROM facilities f
 		JOIN venues v ON v.id = f.venue_id
 		WHERE f.venue_id = $1 AND v.owner_user_id = $2
@@ -139,12 +140,12 @@ func (r *repository) ListFacilities(ctx context.Context, ownerID, venueID int64)
 func (r *repository) UpdateFacility(ctx context.Context, ownerID, facilityID int64, input FacilityInput) (Facility, error) {
 	query := `
 		UPDATE facilities f
-		SET name = $3, sport = $4, type = $5, open_summary = $6, price_per_hour = $7::numeric, status = $8, updated_at = NOW()
+		SET name = $3, sport = $4, type = $5, open_summary = $6, price_per_hour = $7::numeric, status = $8, open_time = $9, close_time = $10, slot_duration_mins = $11, updated_at = NOW()
 		FROM venues v
 		WHERE f.id = $1 AND f.venue_id = v.id AND v.owner_user_id = $2
-		RETURNING f.id, f.venue_id, f.name, f.sport, f.type, f.open_summary, f.price_per_hour::text, f.status, f.created_at, f.updated_at
+		RETURNING f.id, f.venue_id, f.name, f.sport, f.type, f.open_summary, f.price_per_hour::text, f.status, f.open_time, f.close_time, f.slot_duration_mins, f.created_at, f.updated_at
 	`
-	return scanFacility(r.db.QueryRow(ctx, query, facilityID, ownerID, input.Name, input.Sport, input.Type, input.OpenSummary, input.PricePerHour, input.Status))
+	return scanFacility(r.db.QueryRow(ctx, query, facilityID, ownerID, input.Name, input.Sport, input.Type, input.OpenSummary, input.PricePerHour, input.Status, input.OpenTime, input.CloseTime, input.SlotDurationMins))
 }
 
 func (r *repository) DeleteFacility(ctx context.Context, ownerID, facilityID int64) error {
@@ -217,6 +218,24 @@ func (r *repository) UpdateTimeSlot(ctx context.Context, ownerID, slotID int64, 
 		RETURNING ts.id, ts.facility_id, ts.starts_at, ts.ends_at, ts.slot_type, ts.status, ts.reason, ts.created_by_user_id, ts.created_at, ts.updated_at
 	`
 	return scanTimeSlot(r.db.QueryRow(ctx, query, slotID, ownerID, input.StartsAt, input.EndsAt, input.SlotType, input.Status, input.Reason))
+}
+
+func (r *repository) DeleteTimeSlot(ctx context.Context, ownerID, slotID int64) error {
+	query := `
+		DELETE FROM time_slots ts
+		USING facilities f
+		JOIN venues v ON v.id = f.venue_id
+		WHERE ts.id = $1 AND ts.facility_id = f.id AND v.owner_user_id = $2
+	`
+	result, err := r.db.Exec(ctx, query, slotID, ownerID)
+	if err != nil {
+		return err
+	}
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (r *repository) BlockDates(ctx context.Context, ownerID, facilityID int64, input BlockDatesInput) ([]TimeSlot, error) {
@@ -452,6 +471,8 @@ func scanVenue(row interface{ Scan(dest ...any) error }) (Venue, error) {
 }
 
 func scanFacility(row interface{ Scan(dest ...any) error }) (Facility, error) {
+	var openTime, closeTime *string
+	var slotDurationMins *int
 	var item Facility
 	err := row.Scan(
 		&item.ID,
@@ -462,6 +483,9 @@ func scanFacility(row interface{ Scan(dest ...any) error }) (Facility, error) {
 		&item.OpenSummary,
 		&item.PricePerHour,
 		&item.Status,
+		&openTime,
+		&closeTime,
+		&slotDurationMins,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 	)
@@ -471,6 +495,9 @@ func scanFacility(row interface{ Scan(dest ...any) error }) (Facility, error) {
 		}
 		return Facility{}, err
 	}
+	item.OpenTime = openTime
+	item.CloseTime = closeTime
+	item.SlotDurationMins = slotDurationMins
 	return item, nil
 }
 

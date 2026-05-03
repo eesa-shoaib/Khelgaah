@@ -281,17 +281,25 @@ class ApiClient {
     required String token,
     required int venueId,
     required String name,
-    required String description,
-    required int capacity,
+    required String sport,
+    required String type,
+    required String openSummary,
     required double pricePerHour,
-    required List<String> amenities,
+    required String status,
+    String? openTime,
+    String? closeTime,
+    int? slotDurationMins,
   }) async {
     final body = <String, dynamic>{
       'name': name,
-      'description': description,
-      'capacity': capacity,
-      'price_per_hour': pricePerHour,
-      'amenities': amenities,
+      'sport': sport,
+      'type': type,
+      'open_summary': openSummary,
+      'price_per_hour': pricePerHour.toString(),
+      'status': status,
+      if (openTime != null && openTime.isNotEmpty) 'open_time': openTime,
+      if (closeTime != null && closeTime.isNotEmpty) 'close_time': closeTime,
+      if (slotDurationMins != null) 'slot_duration_mins': slotDurationMins,
     };
     final response = await _httpClient.post(
       _uri('/api/v1/venue-owner/venues/$venueId/facilities'),
@@ -305,17 +313,25 @@ class ApiClient {
     required String token,
     required int facilityId,
     required String name,
-    required String description,
-    required int capacity,
+    required String sport,
+    required String type,
+    required String openSummary,
     required double pricePerHour,
-    required List<String> amenities,
+    required String status,
+    String? openTime,
+    String? closeTime,
+    int? slotDurationMins,
   }) async {
     final body = <String, dynamic>{
       'name': name,
-      'description': description,
-      'capacity': capacity,
-      'price_per_hour': pricePerHour,
-      'amenities': amenities,
+      'sport': sport,
+      'type': type,
+      'open_summary': openSummary,
+      'price_per_hour': pricePerHour.toString(),
+      'status': status,
+      if (openTime != null && openTime.isNotEmpty) 'open_time': openTime,
+      if (closeTime != null && closeTime.isNotEmpty) 'close_time': closeTime,
+      if (slotDurationMins != null) 'slot_duration_mins': slotDurationMins,
     };
     final response = await _httpClient.put(
       _uri('/api/v1/venue-owner/facilities/$facilityId'),
@@ -426,17 +442,20 @@ class ApiClient {
   Future<void> addTimeSlot({
     required String token,
     required int facilityId,
-    required DateTime date,
-    required String startTime,
-    required String endTime,
+    required String startsAt,
+    required String endsAt,
+    required String slotType,
+    String? reason,
   }) async {
     final response = await _httpClient.post(
       _uri('/api/v1/venue-owner/facilities/$facilityId/time-slots'),
       headers: _headers(token: token),
       body: jsonEncode({
-        'date': _formatDate(date),
-        'start_time': startTime,
-        'end_time': endTime,
+        'starts_at': startsAt,
+        'ends_at': endsAt,
+        'slot_type': slotType,
+        'status': 'active',
+        if (reason != null) 'reason': reason,
       }),
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -447,15 +466,21 @@ class ApiClient {
     }
   }
 
-  Future<void> blockDate({
+  Future<void> blockDates({
     required String token,
     required int facilityId,
-    required DateTime date,
+    required String startDate,
+    required String endDate,
+    String? reason,
   }) async {
     final response = await _httpClient.post(
-      _uri('/api/v1/venue-owner/facilities/$facilityId/block-date'),
+      _uri('/api/v1/venue-owner/facilities/$facilityId/block-dates'),
       headers: _headers(token: token),
-      body: jsonEncode({'date': _formatDate(date)}),
+      body: jsonEncode({
+        'start_date': startDate,
+        'end_date': endDate,
+        if (reason != null) 'reason': reason,
+      }),
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw ApiException(
