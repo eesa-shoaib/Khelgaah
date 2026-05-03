@@ -29,10 +29,23 @@ class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
+  bool _hasLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoaded) {
+      _hasLoaded = true;
+      Future.microtask(() {
+        if (!mounted) return;
+        _loadBookingDetails();
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _loadBookingDetails();
   }
 
   Future<void> _loadBookingDetails() async {

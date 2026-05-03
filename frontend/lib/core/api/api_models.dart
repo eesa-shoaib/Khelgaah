@@ -1,5 +1,12 @@
 import 'dart:convert';
 
+num? parseNum(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value;
+  if (value is String) return num.tryParse(value);
+  return null;
+}
+
 class ApiException implements Exception {
   const ApiException(this.message, {this.statusCode});
 
@@ -54,7 +61,7 @@ class UserProfile {
   final String status;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
-    id: json['id'] as int,
+    id: parseNum(json['id'])?.toInt() ?? 0,
     fullName: json['full_name'] as String,
     email: json['email'] as String,
     phone: (json['phone'] as String?) ?? '',
@@ -90,8 +97,8 @@ class FacilityDto {
   final String openSummary;
 
   factory FacilityDto.fromJson(Map<String, dynamic> json) => FacilityDto(
-    id: json['id'] as int,
-    venueId: json['venue_id'] as int,
+    id: parseNum(json['id'])?.toInt() ?? 0,
+    venueId: parseNum(json['venue_id'])?.toInt() ?? 0,
     name: json['name'] as String,
     sport: json['sport'] as String,
     type: json['type'] as String,
@@ -137,9 +144,9 @@ class BookingDto {
   final DateTime createdAt;
 
   factory BookingDto.fromJson(Map<String, dynamic> json) => BookingDto(
-    id: json['id'] as int,
-    userId: json['user_id'] as int,
-    facilityId: json['facility_id'] as int,
+    id: parseNum(json['id'])?.toInt() ?? 0,
+    userId: parseNum(json['user_id'])?.toInt() ?? 0,
+    facilityId: parseNum(json['facility_id'])?.toInt() ?? 0,
     startTime: DateTime.parse(json['start_time'] as String),
     endTime: DateTime.parse(json['end_time'] as String),
     status: json['status'] as String,
@@ -189,14 +196,14 @@ class VenueDto {
   });
 
   factory VenueDto.fromJson(Map<String, dynamic> json) => VenueDto(
-        id: json['id'] as int,
+        id: parseNum(json['id'])?.toInt() ?? 0,
         name: json['name'] as String,
         address: json['address'] as String? ?? '',
         city: json['city'] as String? ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble(),
-        longitude: (json['longitude'] as num?)?.toDouble(),
+        latitude: parseNum(json['latitude'])?.toDouble(),
+        longitude: parseNum(json['longitude'])?.toDouble(),
         status: json['status'] as String? ?? 'pending',
-        facilityCount: json['facility_count'] as int? ?? 0,
+        facilityCount: parseNum(json['facility_count'])?.toInt() ?? 0,
       );
 }
 
@@ -223,12 +230,12 @@ class VenueOwnerFacilityDto {
 
   factory VenueOwnerFacilityDto.fromJson(Map<String, dynamic> json) =>
       VenueOwnerFacilityDto(
-        id: json['id'] as int,
-        venueId: json['venue_id'] as int,
+        id: parseNum(json['id'])?.toInt() ?? 0,
+        venueId: parseNum(json['venue_id'])?.toInt() ?? 0,
         name: json['name'] as String,
         description: json['description'] as String? ?? '',
-        capacity: json['capacity'] as int? ?? 0,
-        pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        capacity: parseNum(json['capacity'])?.toInt() ?? 0,
+        pricePerHour: parseNum(json['price_per_hour'])?.toDouble() ?? 0.0,
         status: json['status'] as String? ?? 'pending',
         amenities: (json['amenities'] as List<dynamic>?)
                 ?.cast<String>()
@@ -266,15 +273,15 @@ class VenueOwnerBookingDto {
 
   factory VenueOwnerBookingDto.fromJson(Map<String, dynamic> json) =>
       VenueOwnerBookingDto(
-        id: json['id'] as int,
-        userId: json['user_id'] as int,
+        id: parseNum(json['id'])?.toInt() ?? 0,
+        userId: parseNum(json['user_id'])?.toInt() ?? 0,
         customerName: json['customer_name'] as String? ?? 'Customer',
-        facilityId: json['facility_id'] as int,
+        facilityId: parseNum(json['facility_id'])?.toInt() ?? 0,
         facilityName: json['facility_name'] as String? ?? 'Facility',
         startTime: DateTime.parse(json['start_time'] as String),
         endTime: DateTime.parse(json['end_time'] as String),
         status: json['status'] as String? ?? 'pending',
-        totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
+        totalAmount: parseNum(json['total_amount'])?.toDouble() ?? 0.0,
         paymentStatus: json['payment_status'] as String? ?? 'pending',
         notes: json['notes'] as String?,
       );
@@ -296,10 +303,10 @@ class DashboardStats {
   });
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) => DashboardStats(
-        totalBookings: json['total_bookings'] as int? ?? 0,
-        totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0.0,
-        occupancyRate: (json['occupancy_rate'] as num?)?.toDouble() ?? 0.0,
-        pendingApprovals: json['pending_approvals'] as int? ?? 0,
+        totalBookings: parseNum(json['total_bookings'])?.toInt() ?? 0,
+        totalRevenue: parseNum(json['total_revenue'])?.toDouble() ?? 0.0,
+        occupancyRate: parseNum(json['occupancy_rate'])?.toDouble() ?? 0.0,
+        pendingApprovals: parseNum(json['pending_approvals'])?.toInt() ?? 0,
         recentBookings: (json['recent_bookings'] as List<dynamic>?)
                 ?.cast<Map<String, dynamic>>()
                 .map(VenueOwnerBookingDto.fromJson)
@@ -326,7 +333,7 @@ class TimeSlotDto {
   });
 
   factory TimeSlotDto.fromJson(Map<String, dynamic> json) => TimeSlotDto(
-        id: json['id'] as int?,
+        id: parseNum(json['id'])?.toInt(),
         date: DateTime.parse(json['date'] as String),
         startTime: json['start_time'] as String,
         endTime: json['end_time'] as String,
@@ -380,6 +387,6 @@ class ChartDataPoint {
 
   factory ChartDataPoint.fromJson(Map<String, dynamic> json) => ChartDataPoint(
         label: json['label'] as String? ?? '',
-        value: (json['value'] as num?)?.toDouble() ?? 0.0,
+        value: parseNum(json['value'])?.toDouble() ?? 0.0,
       );
 }

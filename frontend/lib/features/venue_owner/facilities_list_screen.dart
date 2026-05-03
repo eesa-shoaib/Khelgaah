@@ -64,6 +64,9 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
   }
 
   Future<void> _deleteFacility(VenueOwnerFacilityDto facility) async {
+    final controller = AppScope.of(context);
+    final token = controller.session?.token;
+
     final confirmed = await ConfirmationDialog.show(
       context,
       title: 'Delete Facility',
@@ -74,9 +77,7 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
     );
 
     if (!confirmed) return;
-
-    final controller = AppScope.of(context);
-    final token = controller.session?.token;
+    if (!mounted) return;
     if (token == null) return;
 
     try {
@@ -84,6 +85,7 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
         token: token,
         facilityId: facility.id,
       );
+      if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
         message: 'Facility deleted successfully.',
@@ -101,8 +103,9 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
   }
 
   void _navigateToFacilityDetails(VenueOwnerFacilityDto facility) {
+    final navContext = context;
     Navigator.push<void>(
-      context,
+      navContext,
       MaterialPageRoute(
         builder: (_) => FacilityDetailsScreen(facility: facility),
       ),
@@ -110,8 +113,9 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
   }
 
   void _navigateToAddFacility() {
+    final navContext = context;
     Navigator.push<void>(
-      context,
+      navContext,
       MaterialPageRoute(
         builder: (_) => FacilityEditScreen(venueId: widget.venue.id),
       ),

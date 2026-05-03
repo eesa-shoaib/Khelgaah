@@ -67,15 +67,16 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
   }
 
   Future<void> _addTimeSlot() async {
+    final controller = AppScope.of(context);
+    final token = controller.session?.token;
+
     final result = await showDialog<_TimeSlotFormResult>(
       context: context,
       builder: (_) => const _AddTimeSlotDialog(),
     );
 
     if (result == null) return;
-
-    final controller = AppScope.of(context);
-    final token = controller.session?.token;
+    if (!mounted) return;
     if (token == null) return;
 
     try {
@@ -86,6 +87,7 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
         startTime: result.startTime,
         endTime: result.endTime,
       );
+      if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
         message: 'Time slot added successfully.',
@@ -103,6 +105,9 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
   }
 
   Future<void> _blockDate() async {
+    final controller = AppScope.of(context);
+    final token = controller.session?.token;
+
     final confirmed = await ConfirmationDialog.show(
       context,
       title: 'Block Date',
@@ -113,9 +118,7 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
     );
 
     if (!confirmed) return;
-
-    final controller = AppScope.of(context);
-    final token = controller.session?.token;
+    if (!mounted) return;
     if (token == null) return;
 
     try {
@@ -124,6 +127,7 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
         facilityId: widget.facilityId,
         date: _selectedDate,
       );
+      if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
         message: 'Date blocked successfully.',
@@ -143,6 +147,9 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
   Future<void> _deleteTimeSlot(TimeSlotDto slot) async {
     if (slot.id == null) return;
 
+    final controller = AppScope.of(context);
+    final token = controller.session?.token;
+
     final confirmed = await ConfirmationDialog.show(
       context,
       title: 'Delete Time Slot',
@@ -152,9 +159,7 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
     );
 
     if (!confirmed) return;
-
-    final controller = AppScope.of(context);
-    final token = controller.session?.token;
+    if (!mounted) return;
     if (token == null) return;
 
     try {
@@ -162,6 +167,7 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
         token: token,
         slotId: slot.id!,
       );
+      if (!mounted) return;
       AppFeedback.pulseMessage(
         context,
         message: 'Time slot deleted successfully.',

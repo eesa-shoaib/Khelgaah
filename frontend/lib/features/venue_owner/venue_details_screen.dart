@@ -17,35 +17,13 @@ class VenueDetailsScreen extends StatefulWidget {
 class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
   late VenueDto _venue;
   List<VenueOwnerFacilityDto> _facilities = [];
-
-  final _sampleFacilities = [
-    VenueOwnerFacilityDto(
-      id: 1,
-      venueId: 1,
-      name: 'Football Turf A',
-      description: 'Professional football turf with floodlights',
-      capacity: 20,
-      pricePerHour: 2000,
-      status: 'approved',
-      amenities: ['Changing Rooms', 'Floodlights'],
-    ),
-    VenueOwnerFacilityDto(
-      id: 2,
-      venueId: 1,
-      name: 'Cricket Pitch',
-      description: 'International standard cricket pitch',
-      capacity: 30,
-      pricePerHour: 3000,
-      status: 'pending',
-      amenities: ['Pavilion', 'Scoreboard'],
-    ),
-  ];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
     _venue = widget.venue;
-    _facilities = _sampleFacilities;
     _loadFacilities();
   }
 
@@ -54,14 +32,32 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
     final token = controller.session?.token;
     if (token == null) return;
 
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
       final facilities = await controller.apiClient
           .listFacilitiesForVenue(token: token, venueId: _venue.id)
           .timeout(const Duration(seconds: 10));
       if (!mounted) return;
-      setState(() => _facilities = facilities);
+      setState(() {
+        _facilities = facilities;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _isLoading = false;
+      });
     } catch (_) {
-      // Keep showing sample data on error
+      if (!mounted) return;
+      setState(() {
+        _error = 'Failed to load facilities.';
+        _isLoading = false;
+      });
     }
   }
 
@@ -72,36 +68,40 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
         title: Text(_venue.name),
         actions: const [ProfileActionIcon()],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadFacilities,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _VenueInfoCard(venue: _venue),
-            const SizedBox(height: 20),
-            Text(
-              'Facilities (${_facilities.length})',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.onSurface,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? _ErrorState(message: _error!, onRetry: _loadFacilities)
+              : RefreshIndicator(
+                  onRefresh: _loadFacilities,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _VenueInfoCard(venue: _venue),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Facilities (${_facilities.length})',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onSurface,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_facilities.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Text('No facilities found'),
+                          ),
+                        )
+                      else
+                        for (final facility in _facilities)
+                          _FacilityCard(
+                            facility: facility,
+                          ),
+                    ],
                   ),
-            ),
-            const SizedBox(height: 12),
-            if (_facilities.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('No facilities found'),
                 ),
-              )
-            else
-              for (final facility in _facilities)
-                _FacilityCard(
-                  facility: facility,
-                ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -272,5 +272,26 @@ class _FacilityCard extends StatelessWidget {
     if (s == 'approved' || s == 'active' || s == 'available') return Colors.greenAccent;
     if (s == 'pending') return Colors.amberAccent;
     return AppTheme.error;
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorState({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(message, style: const TextStyle(color: AppTheme.error)),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
   }
 }

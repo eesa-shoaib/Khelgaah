@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
+import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/booking_card_widget.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/core/widgets/filter_chips_widget.dart';
@@ -17,53 +18,28 @@ class VenueOwnerBookingsScreen extends StatefulWidget {
 class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
   List<VenueOwnerBookingDto> _bookings = [];
   String? _selectedFilter;
-
-  final _sampleBookings = [
-    VenueOwnerBookingDto(
-      id: 1,
-      userId: 101,
-      customerName: 'Ahmed Ali',
-      facilityId: 1,
-      facilityName: 'Football Turf A',
-      startTime: DateTime.now().add(const Duration(days: 1)),
-      endTime: DateTime.now().add(const Duration(days: 1, hours: 1)),
-      status: 'pending',
-      totalAmount: 2000,
-      paymentStatus: 'paid',
-    ),
-    VenueOwnerBookingDto(
-      id: 2,
-      userId: 102,
-      customerName: 'Fatima Khan',
-      facilityId: 2,
-      facilityName: 'Cricket Pitch',
-      startTime: DateTime.now().add(const Duration(days: 2)),
-      endTime: DateTime.now().add(const Duration(days: 2, hours: 2)),
-      status: 'confirmed',
-      totalAmount: 3000,
-      paymentStatus: 'paid',
-    ),
-    VenueOwnerBookingDto(
-      id: 3,
-      userId: 103,
-      customerName: 'Usman Tariq',
-      facilityId: 1,
-      facilityName: 'Football Turf A',
-      startTime: DateTime.now().subtract(const Duration(days: 1)),
-      endTime: DateTime.now().subtract(const Duration(days: 1, hours: -1)),
-      status: 'rejected',
-      totalAmount: 2000,
-      paymentStatus: 'pending',
-    ),
-  ];
+  bool _isLoading = true;
+  String? _error;
 
   final _filters = ['Pending', 'Confirmed', 'Rejected'];
+
+  bool _hasLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoaded) {
+      _hasLoaded = true;
+      Future.microtask(() {
+        if (!mounted) return;
+        _loadBookings();
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _bookings = _sampleBookings;
-    _loadBookings();
   }
 
   Future<void> _loadBookings() async {
@@ -71,14 +47,32 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
     final token = controller.session?.token;
     if (token == null) return;
 
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
     try {
       final bookings = await controller.apiClient
           .listVenueOwnerBookings(token: token)
           .timeout(const Duration(seconds: 10));
       if (!mounted) return;
-      setState(() => _bookings = bookings);
+      setState(() {
+        _bookings = bookings;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _isLoading = false;
+      });
     } catch (_) {
-      // Keep showing sample data on error
+      if (!mounted) return;
+      setState(() {
+        _error = 'Failed to load bookings.';
+        _isLoading = false;
+      });
     }
   }
 
@@ -126,8 +120,6 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bookings = _filteredBookings;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bookings'),
@@ -141,56 +133,89 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
             onSelected: (filter) => setState(() => _selectedFilter = filter),
           ),
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadBookings,
-              child: bookings.isEmpty
-                  ? const Center(child: Text('No bookings found'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: bookings.length,
-                      itemBuilder: (context, index) {
-                        final booking = bookings[index];
-                        return GestureDetector(
-                          onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BookingApprovalScreen(
-                                  bookingId: booking.id,
-                                ),
-                              ),
-                            );
-                            if (result == true) {
-                              _loadBookings();
-                            }
-                          },
-                          child: BookingCard(
-                            key: ValueKey(booking.id),
-                            customerName: booking.customerName,
-                            facilityName: booking.facilityName,
-                            date: _formatDate(booking.startTime),
-                            time:
-                                '${_formatTime(booking.startTime)} - ${_formatTime(booking.endTime)}',
-                            status: booking.status,
-                            showActions: booking.status == 'pending',
-                            onApprove: booking.status == 'pending'
-                                ? () => _updateBookingStatus(
-                                      booking.id,
-                                      'confirmed',
-                                    )
-                                : null,
-                            onReject: booking.status == 'pending'
-                                ? () => _updateBookingStatus(
-                                      booking.id,
-                                      'rejected',
-                                    )
-                                : null,
-                          ),
-                        );
-                      },
-                    ),
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? _ErrorState(message: _error!, onRetry: _loadBookings)
+                    : _buildBookingsList(),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingsList() {
+    final bookings = _filteredBookings;
+
+    if (bookings.isEmpty) {
+      return const Center(child: Text('No bookings found'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadBookings,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: bookings.length,
+        itemBuilder: (context, index) {
+          final booking = bookings[index];
+          return GestureDetector(
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BookingApprovalScreen(
+                    bookingId: booking.id,
+                  ),
+                ),
+              );
+              if (result == true) {
+                _loadBookings();
+              }
+            },
+            child: BookingCard(
+              key: ValueKey(booking.id),
+              customerName: booking.customerName,
+              facilityName: booking.facilityName,
+              date: _formatDate(booking.startTime),
+              time:
+                  '${_formatTime(booking.startTime)} - ${_formatTime(booking.endTime)}',
+              status: booking.status,
+              showActions: booking.status == 'pending',
+              onApprove: booking.status == 'pending'
+                  ? () => _updateBookingStatus(
+                        booking.id,
+                        'confirmed',
+                      )
+                  : null,
+              onReject: booking.status == 'pending'
+                  ? () => _updateBookingStatus(
+                        booking.id,
+                        'rejected',
+                      )
+                  : null,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorState({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(message, style: const TextStyle(color: AppTheme.error)),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );
