@@ -297,7 +297,7 @@ class _BookingScreenState extends State<BookingScreen> {
               itemCount: _slots.length,
               itemBuilder: (context, index) {
                 final slot = _slots[index];
-                final available = slot.isAvailable;
+                final available = slot.status == 'available';
 
                 return TimeSlotItem(
                   time: available

@@ -1,40 +1,26 @@
-# Khelgaah TODO
+# Khelgaah Project Todo List
 
-## Integration
+## High Priority
+- [ ] Complete payment gateway integration in backend (`internal/payments`).
+- [ ] Implement actual payment processing in frontend (`features/booking`).
+- [ ] Fix availability slot generation edge cases (overlapping slots).
+- [ ] Add unit tests for `internal/venue_owner` and `internal/admin` services.
+- [ ] Implement push notifications for booking confirmations.
 
-- Run backend and frontend together in a verified local setup.
-- Add backend CORS support for Flutter Web.
-- Document frontend `API_BASE_URL` usage for web, Android emulator, and local devices.
-- Add a simple end-to-end happy path check: signup, browse, availability, book, view bookings.
+## Medium Priority
+- [ ] Add image upload support for Venues and Facilities (S3 or local storage).
+- [ ] Implement user reviews and ratings system.
+- [ ] Add map integration in search feature (Google Maps / Leaflet).
+- [ ] Optimize database queries for facility search.
+- [ ] Implement soft delete for venues and users.
 
-## Frontend
+## Low Priority
+- [ ] Export analytics data to CSV/PDF for Admins.
+- [ ] Refactor `main_layout.dart` for better responsiveness on tablet.
 
-- Finish replacing remaining placeholder UI data with backend data.
-- Wire venue data into the home/search experience where needed.
-- Load the authenticated user profile from `GET /api/v1/me`.
-- Improve loading, empty, error, and retry states across API-driven screens.
-- Persist auth/session flow cleanly across app restart and logout.
-- Add widget/integration tests for auth, search, booking, and profile flows.
-
-## Backend
-
-- Add seed data for venues, facilities, and operating hours.
-- Add CORS middleware and preflight handling.
-- Add request validation consistency across all handlers.
-- Expand test coverage for handlers, repositories, and booking edge cases.
-- Add API docs for request/response payloads and error shapes.
-- Add health/readiness guidance for local development.
-
-## Booking and Product Gaps
-
-- Implement real payment flow or clearly mark payment as placeholder.
-- Support booking cancellation/reschedule.
-- Show full booking history, not just latest booking summary.
-- Add venue/operator and admin capabilities when MVP player flows are stable.
-
-## Deployment and Ops
-
-- Add environment setup docs for local and production-like runs.
-- Add logging, metrics, and tracing basics.
-- Add CI for backend tests, frontend tests, and formatting/lint checks.
-- Plan Redis, outbox events, workers, and notifications for the next architecture step.
+## Done
+- [x] Basic Auth (Signup/Login) flow.
+- [x] Venue and Facility listing APIs.
+- [x] Basic Booking creation flow.
+- [x] Customer and Venue Owner basic dashboards.
+- [x] Initial database schema and migrations.

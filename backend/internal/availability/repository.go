@@ -27,43 +27,27 @@ func NewRepository(db *pgxpool.Pool) Repository {
 
 func (r *repository) ListSlots(ctx context.Context, facilityID int64, day time.Time, durationMinutes int) ([]Slot, error) {
 	query := `
-		WITH operating AS (
-			SELECT opens_at, closes_at
-			FROM facility_operating_hours
-			WHERE facility_id = $1 AND weekday = EXTRACT(DOW FROM $2::date)
-		),
-		candidate_slots AS (
-			SELECT
-				generate_series(
-					$2::date + operating.opens_at,
-					$2::date + operating.closes_at - make_interval(mins => $3),
-					interval '1 hour'
-				) AS start_time
-			FROM operating
-		)
 		SELECT
-			cs.start_time,
-			cs.start_time + make_interval(mins => $3) AS end_time,
-			NOT EXISTS (
-				SELECT 1
-				FROM bookings b
-				WHERE b.facility_id = $1
-				  AND b.status IN ('pending', 'confirmed', 'completed')
-				  AND tstzrange(b.start_time, b.end_time, '[)') && tstzrange(cs.start_time, cs.start_time + make_interval(mins => $3), '[)')
-			)
-			AND NOT EXISTS (
-				SELECT 1
-				FROM time_slots ts
-				WHERE ts.facility_id = $1
-				  AND ts.slot_type = 'blocked'
-				  AND ts.status = 'active'
-				  AND tstzrange(ts.starts_at, ts.ends_at, '[)') && tstzrange(cs.start_time, cs.start_time + make_interval(mins => $3), '[)')
-			) AS is_available
-		FROM candidate_slots cs
-		ORDER BY cs.start_time
+			ts.starts_at,
+			ts.ends_at,
+			CASE 
+				WHEN b.id IS NOT NULL AND b.status = 'confirmed' THEN 'booked'
+				WHEN ts.slot_type = 'blocked' THEN 'blocked'
+				ELSE 'available'
+			END AS status
+		FROM time_slots ts
+		LEFT JOIN bookings b ON b.facility_id = ts.facility_id
+			AND b.status = 'confirmed'
+			AND b.start_time < ts.ends_at
+			AND b.end_time > ts.starts_at
+		WHERE ts.facility_id = $1
+			AND ts.status = 'active'
+			AND ts.starts_at >= $2::date
+			AND ts.starts_at < $2::date + interval '1 day'
+		ORDER BY ts.starts_at
 	`
 
-	rows, err := r.db.Query(ctx, query, facilityID, day, durationMinutes)
+	rows, err := r.db.Query(ctx, query, facilityID, day)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +56,12 @@ func (r *repository) ListSlots(ctx context.Context, facilityID int64, day time.T
 	var slots []Slot
 	for rows.Next() {
 		var slot Slot
-		if err := rows.Scan(&slot.StartTime, &slot.EndTime, &slot.IsAvailable); err != nil {
+		var status string
+		if err := rows.Scan(&slot.StartTime, &slot.EndTime, &status); err != nil {
 			return nil, err
 		}
+		slot.IsAvailable = status == "available"
+		slot.Status = status
 		slots = append(slots, slot)
 	}
 

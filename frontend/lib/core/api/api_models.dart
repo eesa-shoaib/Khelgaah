@@ -111,16 +111,19 @@ class SlotDto {
     required this.startTime,
     required this.endTime,
     required this.isAvailable,
+    required this.status,
   });
 
   final DateTime startTime;
   final DateTime endTime;
   final bool isAvailable;
+  final String status;
 
   factory SlotDto.fromJson(Map<String, dynamic> json) => SlotDto(
     startTime: DateTime.parse(json['start_time'] as String),
     endTime: DateTime.parse(json['end_time'] as String),
     isAvailable: json['is_available'] as bool,
+    status: json['status'] as String,
   );
 }
 

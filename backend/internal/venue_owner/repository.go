@@ -177,10 +177,21 @@ func (r *repository) CreateTimeSlot(ctx context.Context, ownerID, facilityID int
 
 func (r *repository) ListAvailability(ctx context.Context, ownerID, facilityID int64, from, to time.Time) ([]TimeSlot, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT ts.id, ts.facility_id, ts.starts_at, ts.ends_at, ts.slot_type, ts.status, ts.reason, ts.created_by_user_id, ts.created_at, ts.updated_at
+		SELECT ts.id, ts.facility_id, ts.starts_at, ts.ends_at, ts.slot_type, 
+		       COALESCE(
+		         CASE WHEN b.id IS NOT NULL AND b.status = 'confirmed' THEN 'booked'
+		              WHEN ts.slot_type = 'blocked' THEN 'blocked'
+		              ELSE 'available'
+		       END, 'available'
+		       ) as computed_status,
+		       ts.reason, ts.created_by_user_id, ts.created_at, ts.updated_at
 		FROM time_slots ts
 		JOIN facilities f ON f.id = ts.facility_id
 		JOIN venues v ON v.id = f.venue_id
+		LEFT JOIN bookings b ON b.facility_id = ts.facility_id 
+			AND b.status = 'confirmed'
+			AND b.start_time < ts.ends_at 
+			AND b.end_time > ts.starts_at
 		WHERE ts.facility_id = $1
 		  AND v.owner_user_id = $2
 		  AND ts.starts_at >= $3
