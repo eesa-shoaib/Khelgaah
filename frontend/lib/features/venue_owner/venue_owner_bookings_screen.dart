@@ -115,6 +115,12 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
+  String _formatTimeSlot(DateTime startTime, DateTime endTime) {
+    final start = startTime.toLocal();
+    final end = endTime.toLocal();
+    return '${_formatTime(start)} - ${_formatTime(end)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,9 +183,8 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
               key: ValueKey(booking.id),
               customerName: booking.customerName,
               facilityName: booking.facilityName,
-              date: _formatDate(booking.startTime),
-              time:
-                  '${_formatTime(booking.startTime)} - ${_formatTime(booking.endTime)}',
+              date: _formatDate(booking.startTime.toLocal()),
+              time: _formatTimeSlot(booking.startTime, booking.endTime),
               status: booking.status,
               showActions: booking.status == 'pending',
               onApprove: booking.status == 'pending'

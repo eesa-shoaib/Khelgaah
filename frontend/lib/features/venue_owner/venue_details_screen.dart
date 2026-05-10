@@ -191,6 +191,24 @@ class _VenueInfoCard extends StatelessWidget {
               StatusBadge(status: venue.status, size: StatusBadgeSize.small),
             ],
           ),
+          if (venue.status.toLowerCase() == 'pending') ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.warningContainer,
+                border: Border.all(color: AppTheme.warning),
+              ),
+              child: Text(
+                'This venue is pending approval. Customers will not see it until an admin approves it.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.onWarningContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Text(
             venue.address,

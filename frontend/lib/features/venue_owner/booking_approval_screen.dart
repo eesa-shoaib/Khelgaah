@@ -29,6 +29,12 @@ class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
+  String _formatTimeSlot(DateTime startTime, DateTime endTime) {
+    final start = startTime.toLocal();
+    final end = endTime.toLocal();
+    return '${_formatTime(start)} - ${_formatTime(end)}';
+  }
+
   bool _hasLoaded = false;
 
   @override
@@ -171,14 +177,13 @@ class _BookingApprovalScreenState extends State<BookingApprovalScreen> {
                           _DetailRow(
                             icon: Icons.calendar_today,
                             label: 'Date',
-                            value: _formatDate(_booking!.startTime),
+                            value: _formatDate(_booking!.startTime.toLocal()),
                           ),
                           const SizedBox(height: 12),
                           _DetailRow(
                             icon: Icons.access_time,
-                            label: 'Time',
-                            value:
-                                '${_formatTime(_booking!.startTime)} - ${_formatTime(_booking!.endTime)}',
+                            label: 'Time Slot',
+                            value: _formatTimeSlot(_booking!.startTime, _booking!.endTime),
                           ),
                           const SizedBox(height: 12),
                           _DetailRow(

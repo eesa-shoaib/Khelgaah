@@ -223,7 +223,9 @@ class VenueDto {
         city: json['city'] as String? ?? '',
         latitude: parseNum(json['latitude'])?.toDouble(),
         longitude: parseNum(json['longitude'])?.toDouble(),
-        status: json['status'] as String? ?? 'pending',
+        status: json['approval_status'] as String? ??
+            json['status'] as String? ??
+            'pending',
         facilityCount: parseNum(json['facility_count'])?.toInt() ?? 0,
       );
 }
