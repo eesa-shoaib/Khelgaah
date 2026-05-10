@@ -35,17 +35,9 @@ flutter run --dart-define=API_USE_ADB_REVERSE=true
 ## Implemented Features
 
 ### Frontend (Flutter)
-- **Home Screen** - Category-based facility discovery with sport icons
-- **Search Screen** - Facility search with category filtering and ratings
-- **Booking Flow**
-  - Day selection with date chips
-  - Duration stepper (30-min increments, min 30min, max 180min)
-  - Dynamic timeslot availability based on selected duration
-  - Timeslots show start-end times with clear unavailable states
-- **Booking Confirmation** - Facility details, payment summary, access info
-- **Loading Screen** - Animated launch screen with brand gradient effects
-- **UI Components** - Reusable widgets (AppFacilityCard, AppRatingBadge, AppSelectableTile, etc.)
-- **Dark Theme** - Consistent dark mode design system with orange accent colors
+- **Customer Portal** - Book time slot for a facility
+- **Venue Owner Portal** - Venue approval state, booking approval/rejection, and timeslot management
+- **Admin Portal** - User, venue, booking, and analytics management
 
 ### Backend (Go)
 - RESTful API structure
