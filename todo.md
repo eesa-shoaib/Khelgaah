@@ -34,11 +34,17 @@
 - Booking Details Screen with cancel functionality (for pending/confirmed bookings)
 - Loading Screen with animated branding
 - Reusable UI components (AppFacilityCard, AppRatingBadge, etc.)
-- Dark theme with orange accent
+- Dark theme with orange accent (Flutter analyze passes with no issues)
 - Venue Owner Portal (Dashboard, Venues List, Facilities List, Bookings with approve/reject, Analytics) with AppLogo branding
 - Venue Owner Booking Details Screen with approve/reject actions
 - Admin Portal (Dashboard with real stats, AppLogo branding, User Management, Venue Management, Booking Management, Analytics)
 - Profile Screen with Booking History (real API data), role-based navigation
+
+**Code Quality Updates:**
+- Fixed Flutter deprecated `MaterialState*` → `WidgetState*` in app_theme.dart
+- Cleaned up unnecessary imports across venue_owner screens
+- Removed unused `_EmptyState` classes
+- Added `// ignore_for_file: use_null_aware_elements` for api_client.dart style hints
 
 ---
 
@@ -59,43 +65,16 @@
 
 ---
 
-## 1. Frontend - Admin Portal (FUNCTIONAL)
+## 1. Frontend - Admin Portal
 
-The admin portal is wired to the backend routes and includes the operational flows the server supports.
+- Keep admin screens aligned with backend routes for users, venues, bookings, payments, and analytics.
+- Preserve working loading behavior on first open.
 
-**Implemented Components:**
-- Admin dashboard with real stats from `/api/v1/admin/dashboard`
-- User management: list users, filter by role/status, change role, suspend, delete
-- Venue management: list venues, filter by status, approve/reject/suspend
-- Booking management: list bookings, cancel, resolve disputes
-- Payments management: list payments and process refunds
-- Analytics screen: active customers/owners, confirmed bookings, refunded amount
+## 2. Frontend - Venue Owner Portal
 
-**Design:**
-- Dark theme consistent with existing frontend
-- Filter chips for role/status filtering
-- Action buttons for CRUD operations
-- Loading states and error handling
-- Color-coded status badges
-
----
-
-## 2. Frontend - Venue Owner Portal (COMPLETE)
-
-The venue owner backend is fully implemented and frontend owner screens exist.
-
-**Already Implemented:**
-- Owner Dashboard (stats: total venues, facilities, bookings, revenue, pending approvals)
-- My Venues Screen (list owned venues, add new venue, edit venue, delete venue)
-- Venue Details Screen (view/edit venue info)
-- My Facilities Screen (list facilities per venue, add facility, edit facility, delete facility)
-- Facility Details Screen (edit facility pricing, availability, operating hours)
-- Time Slots Management (view slots, add custom slots, block dates)
-- My Bookings Screen (list bookings for owned facilities, filter by status)
-- Booking Details Screen (approve/reject/cancel bookings with notes)
-- Analytics Screen (revenue charts, booking trends, popular times)
-
-**Status:** All venue owner functionality is complete and integrated with backend.
+- Show venue approval state clearly in the owner UI.
+- Keep pending booking time slots visible on the approval/reject screens.
+- Make sure owner-created slots are the only customer-visible availability.
 
 ---
 
@@ -303,3 +282,4 @@ Recommended: Seed command that creates admin user and demo data on first run.
 - Payment integration exists structurally but not connected to real gateway
 - Profile screen now includes real booking history from API
 - All APIs follow consistent patterns and are documented in `backend/API.md`
+- Flutter analyze passes with no errors or warnings (only style info hints suppressed)
