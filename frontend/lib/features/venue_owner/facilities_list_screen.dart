@@ -3,10 +3,7 @@ import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
-import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/core/widgets/facility_card_widget.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/features/venue_owner/facility_details_screen.dart';
 
 class FacilitiesListScreen extends StatefulWidget {
@@ -201,50 +198,6 @@ return Padding(
             ),
         ],
       ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final VoidCallback onAdd;
-
-  const _EmptyState({required this.onAdd});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const SizedBox(height: 40),
-        Icon(Icons.sports_outlined, size: 64, color: AppTheme.onSurfaceVariant),
-        const SizedBox(height: 16),
-        Text(
-          'No facilities yet',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: AppTheme.onSurface,
-            fontWeight: FontWeight.w700,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Add your first facility to start receiving bookings.',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppTheme.onSurfaceVariant,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        Center(
-          child: ElevatedButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Facility'),
-          ),
-        ),
-      ],
     );
   }
 }

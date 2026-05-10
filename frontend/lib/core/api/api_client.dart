@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+// ignore_for_file: use_null_aware_elements
 import 'package:http/http.dart' as http;
 
 import 'api_models.dart';

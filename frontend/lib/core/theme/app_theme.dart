@@ -320,7 +320,7 @@ class AppTheme {
       elevation: 20,
       type: BottomNavigationBarType.fixed,
       showUnselectedLabels: true,
-      mouseCursor: MaterialStateMouseCursor.clickable,
+      mouseCursor: WidgetStateMouseCursor.clickable,
     ),
 
     // List tiles
@@ -370,12 +370,12 @@ class AppTheme {
         borderSide: const BorderSide(color: error, width: 2.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      prefixIconColor: MaterialStateColor.resolveWith((states) {
-        if (states.contains(MaterialState.focused)) return primary;
+      prefixIconColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.focused)) return primary;
         return onSurfaceVariant;
       }),
-      suffixIconColor: MaterialStateColor.resolveWith((states) {
-        if (states.contains(MaterialState.focused)) return primary;
+      suffixIconColor: WidgetStateColor.resolveWith((states) {
+        if (states.contains(WidgetState.focused)) return primary;
         return onSurfaceVariant;
       }),
       errorStyle: const TextStyle(color: error, fontSize: 12),
@@ -466,9 +466,9 @@ class AppTheme {
 
     // Switches
     switchTheme: SwitchThemeData(
-      thumbColor: MaterialStatePropertyAll<Color>(primary),
-      trackColor: MaterialStatePropertyAll<Color>(outline),
-      trackOutlineColor: MaterialStatePropertyAll<Color>(outlineVariant),
+      thumbColor: WidgetStatePropertyAll<Color>(primary),
+      trackColor: WidgetStatePropertyAll<Color>(outline),
+      trackOutlineColor: WidgetStatePropertyAll<Color>(outlineVariant),
     ),
 
     // Sliders

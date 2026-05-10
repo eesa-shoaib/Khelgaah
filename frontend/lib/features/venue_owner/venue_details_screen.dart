@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/core/widgets/status_badge_widget.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
-import 'package:frontend/core/widgets/parallelogram_btn.dart';
 import 'package:frontend/features/venue_owner/facilities_list_screen.dart';
 import 'package:frontend/features/venue_owner/facility_details_screen.dart';
 

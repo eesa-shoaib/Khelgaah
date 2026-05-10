@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
-import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/core/widgets/parallelogram_btn.dart';
-import 'package:frontend/core/widgets/venue_card_widget.dart';
-import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/features/venue_owner/venue_details_screen.dart';
 
 class VenuesListScreen extends StatefulWidget {
@@ -314,46 +309,3 @@ class VenuesListScreenState extends State<VenuesListScreen> {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final VoidCallback onAdd;
-
-  const _EmptyState({required this.onAdd});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.business,
-            size: 64,
-            color: AppTheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No venues yet',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppTheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Add your first venue to get started',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppTheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 24),
-          ParallelogramButton(
-            text: 'Add Venue',
-            icon: Icons.add,
-            onPressed: onAdd,
-            variant: ParallelogramButtonVariant.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-        ],
-      ),
-    );
-  }
-}

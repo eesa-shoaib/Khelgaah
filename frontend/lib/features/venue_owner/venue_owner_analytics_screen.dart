@@ -4,7 +4,6 @@ import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
 
 class VenueOwnerAnalyticsScreen extends StatefulWidget {
   const VenueOwnerAnalyticsScreen({super.key});

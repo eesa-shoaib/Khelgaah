@@ -3,11 +3,7 @@ import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
-import 'package:frontend/core/widgets/status_badge_widget.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
-import 'package:frontend/core/widgets/parallelogram_btn.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   final int bookingId;
