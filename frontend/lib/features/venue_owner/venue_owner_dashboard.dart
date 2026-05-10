@@ -8,6 +8,7 @@ import 'package:frontend/core/widgets/stats_card_widget.dart';
 import 'package:frontend/features/venue_owner/venue_owner_bookings_screen.dart';
 import 'package:frontend/features/venue_owner/venue_owner_layout.dart';
 import 'package:frontend/features/venue_owner/venues_list_screen.dart';
+import 'package:frontend/features/venue_owner/venue_owner_analytics_screen.dart';
 
 class VenueOwnerDashboard extends StatefulWidget {
   const VenueOwnerDashboard({super.key});
@@ -143,6 +144,12 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
           category: 'Venues',
           onTap: () => _navigateToTab(1),
         ),
+        const SizedBox(height: 12),
+        AppFacilityCard(
+          name: 'View Analytics',
+          category: 'Analytics',
+          onTap: () => _navigateToTab(3),
+        ),
       ],
     );
   }
@@ -161,6 +168,11 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const VenueOwnerBookingsScreen()),
+        );
+      } else if (tabIndex == 3) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const VenueOwnerAnalyticsScreen()),
         );
       }
     }

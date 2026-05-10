@@ -31,6 +31,7 @@ class _BookedFacilityScreenState extends State<BookedFacilityScreen> {
   }
 
   Future<void> _cancelBooking() async {
+    final controller = AppScope.of(context);
     final confirmed = await ConfirmationDialog.show(
       context,
       title: 'Cancel Booking',
@@ -41,7 +42,6 @@ class _BookedFacilityScreenState extends State<BookedFacilityScreen> {
 
     if (!confirmed) return;
 
-    final controller = AppScope.of(context);
     final token = controller.session?.token;
     if (token == null) return;
 

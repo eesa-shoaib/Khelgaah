@@ -147,11 +147,18 @@ func (s *Service) Dashboard(ctx context.Context, ownerID int64) (DashboardStats,
 	return s.repo.Dashboard(ctx, ownerID)
 }
 
-func (s *Service) Analytics(ctx context.Context, ownerID int64, days int) ([]AnalyticsPoint, error) {
-	if days <= 0 {
-		days = 30
+func (s *Service) Analytics(ctx context.Context, ownerID int64, days int, from, to *time.Time) ([]AnalyticsPoint, error) {
+	if from != nil && to != nil {
+		if !to.After(*from) {
+			return nil, fmt.Errorf("%w: to must be after from", ErrInvalidInput)
+		}
 	}
-	return s.repo.Analytics(ctx, ownerID, days)
+	if from == nil || to == nil {
+		if days <= 0 {
+			days = 30
+		}
+	}
+	return s.repo.Analytics(ctx, ownerID, days, from, to)
 }
 
 func normalizeVenueInput(input VenueInput) VenueInput {

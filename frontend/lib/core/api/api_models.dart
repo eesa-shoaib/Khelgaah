@@ -396,3 +396,211 @@ class AnalyticsData {
             const [],
       );
 }
+
+class AdminDashboardStats {
+  final int totalUsers;
+  final int totalVenues;
+  final int totalBookings;
+  final String totalRevenue;
+  final int openDisputes;
+  final int pendingVenues;
+  final int pendingBookings;
+
+  const AdminDashboardStats({
+    required this.totalUsers,
+    required this.totalVenues,
+    required this.totalBookings,
+    required this.totalRevenue,
+    required this.openDisputes,
+    required this.pendingVenues,
+    required this.pendingBookings,
+  });
+
+  factory AdminDashboardStats.fromJson(Map<String, dynamic> json) =>
+      AdminDashboardStats(
+        totalUsers: parseNum(json['total_users'])?.toInt() ?? 0,
+        totalVenues: parseNum(json['total_venues'])?.toInt() ?? 0,
+        totalBookings: parseNum(json['total_bookings'])?.toInt() ?? 0,
+        totalRevenue: json['total_revenue'] as String? ?? '0',
+        openDisputes: parseNum(json['open_disputes'])?.toInt() ?? 0,
+        pendingVenues: parseNum(json['pending_venues'])?.toInt() ?? 0,
+        pendingBookings: parseNum(json['pending_bookings'])?.toInt() ?? 0,
+      );
+}
+
+class AdminUserDto {
+  final int id;
+  final String fullName;
+  final String email;
+  final String phone;
+  final String role;
+  final String status;
+  final DateTime? suspendedAt;
+
+  const AdminUserDto({
+    required this.id,
+    required this.fullName,
+    required this.email,
+    required this.phone,
+    required this.role,
+    required this.status,
+    this.suspendedAt,
+  });
+
+  factory AdminUserDto.fromJson(Map<String, dynamic> json) => AdminUserDto(
+        id: parseNum(json['id'])?.toInt() ?? 0,
+        fullName: json['full_name'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        phone: json['phone'] as String? ?? '',
+        role: json['role'] as String? ?? 'customer',
+        status: json['status'] as String? ?? 'active',
+        suspendedAt: json['suspended_at'] == null
+            ? null
+            : DateTime.tryParse(json['suspended_at'] as String),
+      );
+}
+
+class AdminVenueDto {
+  final int id;
+  final String name;
+  final String address;
+  final String city;
+  final String approvalStatus;
+  final int? ownerUserId;
+  final DateTime? suspendedAt;
+
+  const AdminVenueDto({
+    required this.id,
+    required this.name,
+    required this.address,
+    required this.city,
+    required this.approvalStatus,
+    this.ownerUserId,
+    this.suspendedAt,
+  });
+
+  factory AdminVenueDto.fromJson(Map<String, dynamic> json) => AdminVenueDto(
+        id: parseNum(json['id'])?.toInt() ?? 0,
+        name: json['name'] as String? ?? '',
+        address: json['address'] as String? ?? '',
+        city: json['city'] as String? ?? '',
+        approvalStatus: json['approval_status'] as String? ?? 'pending',
+        ownerUserId: parseNum(json['owner_user_id'])?.toInt(),
+        suspendedAt: json['suspended_at'] == null
+            ? null
+            : DateTime.tryParse(json['suspended_at'] as String),
+      );
+}
+
+class AdminPaymentDto {
+  final int id;
+  final int bookingId;
+  final String amount;
+  final String currency;
+  final String method;
+  final String status;
+  final String providerReference;
+  final String notes;
+  final DateTime? paidAt;
+  final DateTime? refundedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const AdminPaymentDto({
+    required this.id,
+    required this.bookingId,
+    required this.amount,
+    required this.currency,
+    required this.method,
+    required this.status,
+    required this.providerReference,
+    required this.notes,
+    required this.paidAt,
+    required this.refundedAt,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory AdminPaymentDto.fromJson(Map<String, dynamic> json) => AdminPaymentDto(
+        id: parseNum(json['id'])?.toInt() ?? 0,
+        bookingId: parseNum(json['booking_id'])?.toInt() ?? 0,
+        amount: json['amount'] as String? ?? '0',
+        currency: json['currency'] as String? ?? 'PKR',
+        method: json['method'] as String? ?? 'cash',
+        status: json['status'] as String? ?? 'pending',
+        providerReference: json['provider_reference'] as String? ?? '',
+        notes: json['notes'] as String? ?? '',
+        paidAt: json['paid_at'] == null
+            ? null
+            : DateTime.tryParse(json['paid_at'] as String),
+        refundedAt: json['refunded_at'] == null
+            ? null
+            : DateTime.tryParse(json['refunded_at'] as String),
+        createdAt: DateTime.parse(json['created_at'] as String),
+        updatedAt: DateTime.parse(json['updated_at'] as String),
+      );
+}
+
+class AdminAnalyticsData {
+  final int activeCustomers;
+  final int activeOwners;
+  final int confirmedBookings;
+  final String refundedAmount;
+
+  const AdminAnalyticsData({
+    required this.activeCustomers,
+    required this.activeOwners,
+    required this.confirmedBookings,
+    required this.refundedAmount,
+  });
+
+  factory AdminAnalyticsData.fromJson(Map<String, dynamic> json) =>
+      AdminAnalyticsData(
+        activeCustomers: parseNum(json['active_customers'])?.toInt() ?? 0,
+        activeOwners: parseNum(json['active_owners'])?.toInt() ?? 0,
+        confirmedBookings: parseNum(json['confirmed_bookings'])?.toInt() ?? 0,
+        refundedAmount: json['refunded_amount'] as String? ?? '0',
+      );
+}
+
+class AdminBookingDto {
+  final int id;
+  final int userId;
+  final String userName;
+  final int facilityId;
+  final String facilityName;
+  final String venueName;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String status;
+  final String paymentStatus;
+  final String notes;
+
+  const AdminBookingDto({
+    required this.id,
+    required this.userId,
+    required this.userName,
+    required this.facilityId,
+    required this.facilityName,
+    required this.venueName,
+    required this.startTime,
+    required this.endTime,
+    required this.status,
+    required this.paymentStatus,
+    required this.notes,
+  });
+
+  factory AdminBookingDto.fromJson(Map<String, dynamic> json) => AdminBookingDto(
+        id: parseNum(json['id'])?.toInt() ?? 0,
+        userId: parseNum(json['user_id'])?.toInt() ?? 0,
+        userName: json['user_name'] as String? ?? 'Customer',
+        facilityId: parseNum(json['facility_id'])?.toInt() ?? 0,
+        facilityName: json['facility_name'] as String? ?? 'Facility',
+        venueName: json['venue_name'] as String? ?? 'Venue',
+        startTime: DateTime.parse(json['start_time'] as String),
+        endTime: DateTime.parse(json['end_time'] as String),
+        status: json['status'] as String? ?? 'pending',
+        paymentStatus: json['payment_status'] as String? ?? 'pending',
+        notes: json['notes'] as String? ?? '',
+      );
+}

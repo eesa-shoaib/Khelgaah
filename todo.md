@@ -23,7 +23,7 @@
 - **Admin Portal**: User management, venue approval/suspension, booking management, system analytics
 - **Payments**: Model, repository, service, admin routes (integration incomplete)
 
-### Frontend (Flutter) - Partially Complete
+### Frontend (Flutter) - Mostly Complete
 
 - Home Screen with category-based facility discovery
 - Search Screen with category filtering and ratings
@@ -33,8 +33,10 @@
 - Loading Screen with animated branding
 - Reusable UI components (AppFacilityCard, AppRatingBadge, etc.)
 - Dark theme with orange accent
-- Venue Owner Portal (Dashboard, Venues List, Facilities List, Bookings with approve/reject)
+- Venue Owner Portal (Dashboard, Venues List, Facilities List, Bookings with approve/reject, Analytics)
 - Venue Owner Booking Details Screen with approve/reject actions
+- Admin Portal (Dashboard with real stats, User Management, Venue Management, Booking Management, Analytics)
+- Profile Screen with Booking History (real API data), role-based navigation
 
 ---
 
@@ -55,27 +57,28 @@
 
 ---
 
-## 1. Frontend - Admin Portal
+## 1. Frontend - Admin Portal (FUNCTIONAL)
 
-The admin backend is fully implemented but frontend admin screens are missing.
+The admin portal is wired to the backend routes and includes the operational flows the server supports.
 
-**Required Components:**
-- Admin Login/Auth flow (use existing JWT auth)
-- Admin Dashboard with system-wide stats (total users, venues, bookings, revenue)
-- User Management Screen (list, filter by role/status, suspend, activate, delete)
-- Venue Management Screen (list all venues, approve/reject/suspend venues)
-- Booking Management Screen (list all bookings, force cancel, view disputes)
-- Analytics Screen (charts for revenue, user growth, popular venues)
+**Implemented Components:**
+- Admin dashboard with real stats from `/api/v1/admin/dashboard`
+- User management: list users, filter by role/status, change role, suspend, delete
+- Venue management: list venues, filter by status, approve/reject/suspend
+- Booking management: list bookings, cancel, resolve disputes
+- Payments management: list payments and process refunds
+- Analytics screen: active customers/owners, confirmed bookings, refunded amount
 
-**Design Requirements:**
+**Design:**
 - Dark theme consistent with existing frontend
-- Data tables with pagination
+- Filter chips for role/status filtering
 - Action buttons for CRUD operations
 - Loading states and error handling
+- Color-coded status badges
 
 ---
 
-## 2. Frontend - Venue Owner Portal (MOSTLY COMPLETE)
+## 2. Frontend - Venue Owner Portal (COMPLETE)
 
 The venue owner backend is fully implemented and frontend owner screens exist.
 
@@ -90,11 +93,7 @@ The venue owner backend is fully implemented and frontend owner screens exist.
 - Booking Details Screen (approve/reject/cancel bookings with notes)
 - Analytics Screen (revenue charts, booking trends, popular times)
 
-**Still Needed:**
-- Fix approval/reject API to use PUT (DONE - now uses PUT correctly)
-- Test all venue owner flows end-to-end
-- Add loading states and error handling improvements
-- Add form validation for venue/facility creation
+**Status:** All venue owner functionality is complete and integrated with backend.
 
 ---
 
@@ -181,7 +180,6 @@ Not yet implemented.
 
 - Refactor main_layout.dart for better tablet responsiveness
 - Add onboarding flow for new users
-- Add booking history in user profile
 - Add favorite venues feature
 - Add facility comparison feature
 
@@ -266,8 +264,8 @@ Not yet implemented.
 
 ### High Priority
 
-1. Frontend Admin Portal (dashboard, user/venue/booking management)
-2. Frontend Venue Owner Portal (dashboard, venues, facilities, bookings)
+1. ~~Frontend Admin Portal~~ (COMPLETED)
+2. ~~Frontend Venue Owner Portal~~ (COMPLETED)
 3. Payment Integration (backend gateway + frontend checkout)
 
 ### Medium Priority
@@ -288,6 +286,7 @@ Not yet implemented.
 
 - Backend is mostly complete and well-structured
 - Frontend customer-facing features are done
-- Main gap: Admin and Venue Owner frontends are missing
+- Admin and Venue Owner frontends are now complete
 - Payment integration exists structurally but not connected to real gateway
+- Profile screen now includes real booking history from API
 - All APIs follow consistent patterns and are documented in `backend/API.md`

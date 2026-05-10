@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/eesa/khelgaah/backend/internal/platform/httpx"
 	"github.com/eesa/khelgaah/backend/internal/platform/middleware"
@@ -329,8 +330,39 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux, authMiddleware, ownerOnly m
 
 	mux.Handle("GET /api/v1/venue-owner/analytics", protected(func(w http.ResponseWriter, r *http.Request) {
 		user, _ := middleware.CurrentUserFromContext(r.Context())
-		days, _ := strconv.Atoi(r.URL.Query().Get("days"))
-		items, err := h.service.Analytics(r.Context(), user.ID, days)
+		var (
+			days = 30
+			from *time.Time
+			to   *time.Time
+		)
+
+		dateFrom := r.URL.Query().Get("date_from")
+		dateTo := r.URL.Query().Get("date_to")
+		if dateFrom != "" || dateTo != "" {
+			if dateFrom == "" || dateTo == "" {
+				httpx.WriteError(w, http.StatusBadRequest, "date_from and date_to are required together")
+				return
+			}
+
+			fromDate, err := time.Parse("2006-01-02", dateFrom)
+			if err != nil {
+				httpx.WriteError(w, http.StatusBadRequest, "date_from must use YYYY-MM-DD")
+				return
+			}
+			toDate, err := time.Parse("2006-01-02", dateTo)
+			if err != nil {
+				httpx.WriteError(w, http.StatusBadRequest, "date_to must use YYYY-MM-DD")
+				return
+			}
+			fromValue := time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day(), 0, 0, 0, 0, time.UTC)
+			toValue := time.Date(toDate.Year(), toDate.Month(), toDate.Day(), 0, 0, 0, 0, time.UTC).Add(24 * time.Hour)
+			from = &fromValue
+			to = &toValue
+		} else if value, err := strconv.Atoi(r.URL.Query().Get("days")); err == nil && value > 0 {
+			days = value
+		}
+
+		items, err := h.service.Analytics(r.Context(), user.ID, days, from, to)
 		if err != nil {
 			httpx.WriteError(w, http.StatusInternalServerError, "failed to load analytics")
 			return

@@ -3,6 +3,7 @@ import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/features/venue_owner/venue_owner_dashboard.dart';
 import 'package:frontend/features/venue_owner/venues_list_screen.dart';
 import 'package:frontend/features/venue_owner/venue_owner_bookings_screen.dart';
+import 'package:frontend/features/venue_owner/venue_owner_analytics_screen.dart';
 
 class VenueOwnerLayout extends StatefulWidget {
   final int initialIndex;
@@ -30,6 +31,7 @@ class VenueOwnerLayoutState extends State<VenueOwnerLayout> {
     const VenueOwnerDashboard(),
     VenuesListScreen(key: _venuesListKey),
     const VenueOwnerBookingsScreen(),
+    const VenueOwnerAnalyticsScreen(),
   ];
 
   @override
@@ -98,6 +100,11 @@ class VenueOwnerLayoutState extends State<VenueOwnerLayout> {
                 icon: Icon(Icons.event_note_outlined),
                 activeIcon: Icon(Icons.event_note),
                 label: 'Bookings',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.analytics_outlined),
+                activeIcon: Icon(Icons.analytics),
+                label: 'Analytics',
               ),
             ],
           ),

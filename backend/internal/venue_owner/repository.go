@@ -31,7 +31,7 @@ type Repository interface {
 	GetBooking(ctx context.Context, ownerID, bookingID int64) (Booking, error)
 	UpdateBookingStatus(ctx context.Context, ownerID, bookingID int64, status, notes string) (Booking, error)
 	Dashboard(ctx context.Context, ownerID int64) (DashboardStats, error)
-	Analytics(ctx context.Context, ownerID int64, days int) ([]AnalyticsPoint, error)
+	Analytics(ctx context.Context, ownerID int64, days int, from, to *time.Time) ([]AnalyticsPoint, error)
 }
 
 type repository struct {
@@ -420,8 +420,8 @@ func (r *repository) Dashboard(ctx context.Context, ownerID int64) (DashboardSta
 	return stats, err
 }
 
-func (r *repository) Analytics(ctx context.Context, ownerID int64, days int) ([]AnalyticsPoint, error) {
-	rows, err := r.db.Query(ctx, `
+func (r *repository) Analytics(ctx context.Context, ownerID int64, days int, from, to *time.Time) ([]AnalyticsPoint, error) {
+	query := `
 		SELECT
 			TO_CHAR(DATE_TRUNC('day', b.start_time), 'YYYY-MM-DD') AS day,
 			COUNT(*)::bigint,
@@ -437,10 +437,26 @@ func (r *repository) Analytics(ctx context.Context, ownerID int64, days int) ([]
 			LIMIT 1
 		) p ON true
 		WHERE v.owner_user_id = $1
+	`
+	args := []any{ownerID}
+	if from != nil && to != nil {
+		query += `
+		  AND b.start_time >= $2
+		  AND b.start_time < $3
+		`
+		args = append(args, *from, *to)
+	} else {
+		query += `
 		  AND b.start_time >= NOW() - make_interval(days => $2)
+		`
+		args = append(args, days)
+	}
+	query += `
 		GROUP BY 1
 		ORDER BY 1 DESC
-	`, ownerID, days)
+	`
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

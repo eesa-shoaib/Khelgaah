@@ -58,13 +58,14 @@ class StatsCard extends StatelessWidget {
                 : null,
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
+                  Flexible(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
@@ -100,20 +101,15 @@ class StatsCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      value,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: AppTheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 22,
-                        height: 1.0,
-                      ),
-                    ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: AppTheme.onSurface,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    height: 1.0,
                   ),
                 ),
               ),

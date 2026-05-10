@@ -544,4 +544,237 @@ class ApiClient {
     }
     return AnalyticsData.fromJson(body);
   }
+
+  // ==================== ADMIN ENDPOINTS ====================
+
+  Future<AdminDashboardStats> getAdminDashboard({required String token}) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/dashboard'),
+      headers: _headers(token: token),
+    ).timeout(const Duration(seconds: 30));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+    return AdminDashboardStats.fromJson(body);
+  }
+
+  Future<List<AdminUserDto>> listAdminUsers({
+    required String token,
+    String? role,
+    String? status,
+  }) async {
+    final query = <String, String>{};
+    if (role != null && role.isNotEmpty) query['role'] = role;
+    if (status != null && status.isNotEmpty) query['status'] = status;
+
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/users', query.isEmpty ? null : query),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'users', AdminUserDto.fromJson);
+  }
+
+  Future<AdminUserDto> getAdminUser({
+    required String token,
+    required int userId,
+  }) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/users/$userId'),
+      headers: _headers(token: token),
+    );
+    return _decodeSingle(response, AdminUserDto.fromJson);
+  }
+
+  Future<AdminUserDto> changeAdminUserRole({
+    required String token,
+    required int userId,
+    required String role,
+  }) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/users/$userId/role'),
+      headers: _headers(token: token),
+      body: jsonEncode({'role': role}),
+    );
+    return _decodeSingle(response, AdminUserDto.fromJson);
+  }
+
+  Future<void> suspendAdminUser({required String token, required int userId}) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/users/$userId/suspend'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> deleteAdminUser({
+    required String token,
+    required int userId,
+  }) async {
+    final response = await _httpClient.delete(
+      _uri('/api/v1/admin/users/$userId'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<List<AdminVenueDto>> listAdminVenues({
+    required String token,
+    String? status,
+  }) async {
+    final query = <String, String>{};
+    if (status != null && status.isNotEmpty) query['status'] = status;
+
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/venues', query.isEmpty ? null : query),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'venues', AdminVenueDto.fromJson);
+  }
+
+  Future<void> approveAdminVenue({required String token, required int venueId}) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/venues/$venueId/approve'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> rejectAdminVenue({required String token, required int venueId}) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/venues/$venueId/reject'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> suspendAdminVenue({required String token, required int venueId}) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/venues/$venueId/suspend'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<AdminAnalyticsData> getAdminAnalytics({required String token}) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/analytics'),
+      headers: _headers(token: token),
+    ).timeout(const Duration(seconds: 30));
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+    return AdminAnalyticsData.fromJson(body);
+  }
+
+  Future<List<AdminBookingDto>> listAdminBookings({
+    required String token,
+    String? status,
+  }) async {
+    final query = <String, String>{};
+    if (status != null && status.isNotEmpty) query['status'] = status;
+
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/bookings', query.isEmpty ? null : query),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'bookings', AdminBookingDto.fromJson);
+  }
+
+  Future<void> cancelAdminBooking({required String token, required int bookingId}) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/bookings/$bookingId/cancel'),
+      headers: _headers(token: token),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> resolveAdminBooking({
+    required String token,
+    required int bookingId,
+    required String resolutionNotes,
+    String? bookingStatus,
+  }) async {
+    final response = await _httpClient.put(
+      _uri('/api/v1/admin/bookings/$bookingId/resolve'),
+      headers: _headers(token: token),
+      body: jsonEncode({
+        'resolution_notes': resolutionNotes,
+        if (bookingStatus != null && bookingStatus.isNotEmpty)
+          'booking_status': bookingStatus,
+      }),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        extractApiErrorMessage(response.body),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<List<AdminPaymentDto>> listAdminPayments({
+    required String token,
+    String? status,
+  }) async {
+    final query = <String, String>{};
+    if (status != null && status.isNotEmpty) query['status'] = status;
+
+    final response = await _httpClient.get(
+      _uri('/api/v1/admin/payments', query.isEmpty ? null : query),
+      headers: _headers(token: token),
+    );
+    return _decodeList(response, 'payments', AdminPaymentDto.fromJson);
+  }
+
+  Future<AdminPaymentDto> refundAdminPayment({
+    required String token,
+    required int bookingId,
+    String? notes,
+  }) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/admin/payments/$bookingId/refund'),
+      headers: _headers(token: token),
+      body: jsonEncode({
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      }),
+    );
+    return _decodeSingle(response, AdminPaymentDto.fromJson);
+  }
 }

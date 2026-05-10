@@ -25,6 +25,11 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
     super.initState();
     _dateTo = DateTime.now();
     _dateFrom = DateTime.now().subtract(const Duration(days: 30));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadAnalytics();
   }
 
@@ -109,19 +114,22 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
   Widget _buildBody(ThemeData theme) {
     final analytics = _data!.analytics;
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildDateFilter(theme),
-        const SizedBox(height: 20),
-        _buildSectionTitle(theme, 'Bookings Over Time'),
-        const SizedBox(height: 12),
-        _buildLineChart(analytics, 'Bookings'),
-        const SizedBox(height: 24),
-        _buildSectionTitle(theme, 'Revenue Over Time'),
-        const SizedBox(height: 12),
-        _buildRevenueChart(analytics),
-      ],
+    return SafeArea(
+      top: false,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildDateFilter(theme),
+          const SizedBox(height: 20),
+          _buildSectionTitle(theme, 'Bookings Over Time'),
+          const SizedBox(height: 12),
+          _buildLineChart(analytics, 'Bookings'),
+          const SizedBox(height: 24),
+          _buildSectionTitle(theme, 'Revenue Over Time'),
+          const SizedBox(height: 12),
+          _buildRevenueChart(analytics),
+        ],
+      ),
     );
   }
 
@@ -182,7 +190,7 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: _getInterval(data.map((e) => e.bookings.toDouble()).toList()),
+            horizontalInterval: _getInterval(data.map((e) => e.bookings.toDouble()).toList(), minValue: 1),
             getDrawingHorizontalLine: (value) => FlLine(
               color: AppTheme.outlineVariant,
               strokeWidth: 1,
@@ -262,7 +270,7 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: _getInterval(
-                data.map((e) => double.tryParse(e.revenue) ?? 0.0).toList()),
+                data.map((e) => double.tryParse(e.revenue) ?? 0.0).toList(), minValue: 1),
             getDrawingHorizontalLine: (value) => FlLine(
               color: AppTheme.outlineVariant,
               strokeWidth: 1,
@@ -325,9 +333,10 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
     );
   }
 
-  double _getInterval(List<double> values) {
+  double _getInterval(List<double> values, {double minValue = 0}) {
     if (values.isEmpty) return 100;
     final maxVal = values.reduce((a, b) => a > b ? a : b);
+    if (maxVal <= minValue) return 1;
     return maxVal / 4;
   }
 }

@@ -26,46 +26,111 @@ func NewRepository(db *pgxpool.Pool) Repository {
 }
 
 func (r *repository) ListSlots(ctx context.Context, facilityID int64, day time.Time, durationMinutes int) ([]Slot, error) {
-	query := `
-		SELECT
-			ts.starts_at,
-			ts.ends_at,
-			CASE 
-				WHEN b.id IS NOT NULL AND b.status = 'confirmed' THEN 'booked'
-				WHEN ts.slot_type = 'blocked' THEN 'blocked'
-				ELSE 'available'
-			END AS status
-		FROM time_slots ts
-		LEFT JOIN bookings b ON b.facility_id = ts.facility_id
-			AND b.status = 'confirmed'
-			AND b.start_time < ts.ends_at
-			AND b.end_time > ts.starts_at
+	var slots []Slot
+
+	var opensAt, closesAt string
+	var slotDurationMins int
+	var hasOperatingHours bool
+
+	checkHoursQuery := `
+		SELECT opens_at::text, closes_at::text, slot_duration_mins
+		FROM facility_operating_hours
+		WHERE facility_id = $1 AND weekday = $2
+	`
+	err := r.db.QueryRow(ctx, checkHoursQuery, facilityID, day.Weekday()).Scan(&opensAt, &closesAt, &slotDurationMins)
+	if err == nil {
+		hasOperatingHours = true
+	} else if err != pgx.ErrNoRows {
+		return nil, err
+	}
+
+	if !hasOperatingHours {
+		return slots, nil
+	}
+
+	openTime, err := parseTimeOfDay(opensAt)
+	if err != nil {
+		return nil, err
+	}
+	closeTime, err := parseTimeOfDay(closesAt)
+	if err != nil {
+		return nil, err
+	}
+
+	if slotDurationMins <= 0 {
+		slotDurationMins = 60
+	}
+
+	dayStart := time.Date(day.Year(), day.Month(), day.Day(), openTime.Hour(), openTime.Minute(), 0, 0, day.Location())
+	dayEnd := time.Date(day.Year(), day.Month(), day.Day(), closeTime.Hour(), closeTime.Minute(), 0, 0, day.Location())
+
+	conflictQuery := `
+		SELECT b.start_time, b.end_time FROM bookings b
+		WHERE b.facility_id = $1
+		  AND b.status IN ('pending', 'confirmed', 'completed')
+		  AND b.start_time < $3 AND b.end_time > $2
+		UNION ALL
+		SELECT ts.starts_at, ts.ends_at FROM time_slots ts
 		WHERE ts.facility_id = $1
-			AND ts.status = 'active'
-			AND ts.starts_at >= $2::date
-			AND ts.starts_at < $2::date + interval '1 day'
-		ORDER BY ts.starts_at
+		  AND ts.slot_type = 'blocked'
+		  AND ts.status = 'active'
+		  AND ts.starts_at < $3 AND ts.ends_at > $2
 	`
 
-	rows, err := r.db.Query(ctx, query, facilityID, day)
+	blockedMap := make(map[string]bool)
+	rows, err := r.db.Query(ctx, conflictQuery, facilityID, dayStart, dayEnd)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var slots []Slot
+	var startTS, endTS time.Time
 	for rows.Next() {
-		var slot Slot
-		var status string
-		if err := rows.Scan(&slot.StartTime, &slot.EndTime, &status); err != nil {
+		if err := rows.Scan(&startTS, &endTS); err != nil {
 			return nil, err
 		}
-		slot.IsAvailable = status == "available"
-		slot.Status = status
-		slots = append(slots, slot)
+		current := startTS
+		for current.Before(endTS) {
+			key := current.Format(time.RFC3339)
+			blockedMap[key] = true
+			current = current.Add(time.Minute)
+		}
 	}
 
-	return slots, rows.Err()
+	current := dayStart
+	for current.Add(time.Duration(slotDurationMins) * time.Minute).Before(dayEnd) || current.Add(time.Duration(slotDurationMins) * time.Minute).Equal(dayEnd) {
+		slotEnd := current.Add(time.Duration(slotDurationMins) * time.Minute)
+		if slotEnd.After(dayEnd) {
+			break
+		}
+
+		isAvailable := !blockedMap[current.Format(time.RFC3339)]
+		status := "available"
+		if !isAvailable {
+			status = "blocked"
+		}
+
+		slots = append(slots, Slot{
+			StartTime:   current,
+			EndTime:     slotEnd,
+			IsAvailable: isAvailable,
+			Status:      status,
+		})
+
+		current = slotEnd
+	}
+
+	return slots, nil
+}
+
+func parseTimeOfDay(s string) (time.Time, error) {
+	base := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	if len(s) == 5 {
+		base, _ = time.Parse("15:04", s)
+	} else if len(s) == 8 {
+		base, _ = time.Parse("15:04:05", s)
+	}
+	return base, nil
 }
 
 func (r *repository) HasConflict(ctx context.Context, q Querier, facilityID int64, start, end time.Time) (bool, error) {

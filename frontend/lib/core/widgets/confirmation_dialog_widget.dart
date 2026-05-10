@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/parallelogram_btn.dart';
 
 class ConfirmationDialog extends StatelessWidget {
