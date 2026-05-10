@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
-import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/core/widgets/booking_card_widget.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
-import 'package:frontend/core/widgets/filter_chips_widget.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/features/venue_owner/booking_approval_screen.dart';
 
 class VenueOwnerBookingsScreen extends StatefulWidget {
@@ -136,7 +133,7 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? _ErrorState(message: _error!, onRetry: _loadBookings)
+                    ? ErrorStateWidget(message: _error!, onRetry: _loadBookings)
                     : _buildBookingsList(),
           ),
         ],
@@ -196,27 +193,6 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(message, style: const TextStyle(color: AppTheme.error)),
-          const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-        ],
       ),
     );
   }

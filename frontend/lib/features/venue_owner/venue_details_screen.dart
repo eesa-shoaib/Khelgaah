@@ -3,6 +3,7 @@ import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/status_badge_widget.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/core/widgets/parallelogram_btn.dart';
 import 'package:frontend/features/venue_owner/facilities_list_screen.dart';
@@ -88,7 +89,7 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
           _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _ErrorState(message: _error!, onRetry: _loadFacilities)
+              ? ErrorStateWidget(message: _error!, onRetry: _loadFacilities)
               : RefreshIndicator(
                   onRefresh: _loadFacilities,
                   child: ListView(
@@ -315,26 +316,5 @@ class _FacilityCard extends StatelessWidget {
     if (s == 'approved' || s == 'active' || s == 'available') return Colors.greenAccent;
     if (s == 'pending') return Colors.amberAccent;
     return AppTheme.error;
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(message, style: const TextStyle(color: AppTheme.error)),
-          const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-        ],
-      ),
-    );
   }
 }

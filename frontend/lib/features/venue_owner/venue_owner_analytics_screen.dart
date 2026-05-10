@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 
 class VenueOwnerAnalyticsScreen extends StatefulWidget {
@@ -104,7 +105,7 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _ErrorState(message: _error!, onRetry: _loadAnalytics)
+              ? ErrorStateWidget(message: _error!, onRetry: _loadAnalytics)
               : _data == null
                   ? const Center(child: Text('No data available.'))
                   : _buildBody(theme),
@@ -359,27 +360,6 @@ class _EmptyChart extends StatelessWidget {
           message,
           style: const TextStyle(color: AppTheme.onSurfaceVariant),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(message, style: const TextStyle(color: AppTheme.error)),
-          const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/status_badge_widget.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
 import 'package:frontend/core/widgets/parallelogram_btn.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
@@ -213,7 +214,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _ErrorState(message: _error!, onRetry: _loadBookingDetails)
+              ? ErrorStateWidget(message: _error!, onRetry: _loadBookingDetails)
               : _booking == null
                   ? const Center(child: Text('Booking not found.'))
                   : _buildBody(),
@@ -394,31 +395,6 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(message, style: const TextStyle(color: AppTheme.error)),
-          const SizedBox(height: 12),
-          ParallelogramButton(
-            onPressed: onRetry,
-            text: 'Retry',
-            variant: ParallelogramButtonVariant.primary,
           ),
         ],
       ),

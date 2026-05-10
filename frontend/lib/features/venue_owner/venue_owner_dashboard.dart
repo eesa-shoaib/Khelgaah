@@ -3,6 +3,7 @@ import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/app_facility_card.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/core/widgets/stats_card_widget.dart';
 import 'package:frontend/features/venue_owner/venue_owner_bookings_screen.dart';
@@ -109,7 +110,7 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
     }
 
     if (_error != null && _stats == null) {
-      return _ErrorState(message: _error!, onRetry: _loadData);
+      return ErrorStateWidget(message: _error!, onRetry: _loadData);
     }
 
     if (_stats != null) {
@@ -272,37 +273,6 @@ class _WelcomeCard extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                   fontSize: 17,
                 ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, color: AppTheme.error, size: 48),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(color: AppTheme.onSurface, fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
           ),
         ],
       ),

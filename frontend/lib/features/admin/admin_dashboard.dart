@@ -131,7 +131,7 @@ class _AdminOverviewSectionState extends State<AdminOverviewSection> {
           ),
           const SizedBox(height: 20),
           if (_error != null) ...[
-            _ErrorState(message: _error!, onRetry: _loadDashboard),
+            ErrorStateWidget(message: _error!, onRetry: _loadDashboard),
             const SizedBox(height: 20),
           ] else if (_isLoading) ...[
             const Center(child: Padding(
@@ -226,37 +226,6 @@ class _AdminOverviewSectionState extends State<AdminOverviewSection> {
             label: 'Revenue',
             value: 'PKR $_totalRevenue',
             subtitle: 'Paid payments in system',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorState({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, color: AppTheme.error, size: 48),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(color: AppTheme.onSurface, fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
           ),
         ],
       ),
@@ -475,84 +444,32 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Widget _buildRoleFilter() {
-    final roles = ['all', 'customer', 'venue_owner', 'admin'];
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: roles.map((role) {
-          final isSelected = _selectedRole == role;
-          return GestureDetector(
-            onTap: () => setState(() {
-              _selectedRole = role == 'all' ? null : role;
-              _loadUsers();
-            }),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primary : AppTheme.surfaceContainer,
-                border: Border.all(
-                  color: isSelected ? AppTheme.primary : AppTheme.outlineVariant,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  role[0].toUpperCase() + role.substring(1),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppTheme.onPrimary : AppTheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    final roles = ['customer', 'venue_owner', 'admin'];
+    return FilterChipsWidget(
+      filters: roles,
+      selected: _selectedRole,
+      onSelected: (value) {
+        setState(() {
+          _selectedRole = value;
+        });
+        _loadUsers();
+      },
+      allLabel: 'All',
     );
   }
 
   Widget _buildStatusFilter() {
-    final statuses = ['all', 'active', 'suspended', 'deleted'];
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: statuses.map((status) {
-          final isSelected = _selectedStatus == status;
-          return GestureDetector(
-            onTap: () => setState(() {
-              _selectedStatus = status == 'all' ? null : status;
-              _loadUsers();
-            }),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primary : AppTheme.surfaceContainer,
-                border: Border.all(
-                  color: isSelected ? AppTheme.primary : AppTheme.outlineVariant,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  status[0].toUpperCase() + status.substring(1),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppTheme.onPrimary : AppTheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    final statuses = ['active', 'suspended', 'deleted'];
+    return FilterChipsWidget(
+      filters: statuses,
+      selected: _selectedStatus,
+      onSelected: (value) {
+        setState(() {
+          _selectedStatus = value;
+        });
+        _loadUsers();
+      },
+      allLabel: 'All',
     );
   }
 
@@ -830,43 +747,17 @@ class _VenueManagementScreenState extends State<VenueManagementScreen> {
   }
 
   Widget _buildStatusFilter() {
-    final statuses = ['all', 'pending', 'approved', 'rejected', 'suspended'];
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: statuses.map((status) {
-          final isSelected = _selectedStatus == status;
-          return GestureDetector(
-            onTap: () => setState(() {
-              _selectedStatus = status == 'all' ? null : status;
-              _loadVenues();
-            }),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primary : AppTheme.surfaceContainer,
-                border: Border.all(
-                  color: isSelected ? AppTheme.primary : AppTheme.outlineVariant,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  status[0].toUpperCase() + status.substring(1),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppTheme.onPrimary : AppTheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    final statuses = ['pending', 'approved', 'rejected', 'suspended'];
+    return FilterChipsWidget(
+      filters: statuses,
+      selected: _selectedStatus,
+      onSelected: (value) {
+        setState(() {
+          _selectedStatus = value;
+        });
+        _loadVenues();
+      },
+      allLabel: 'All',
     );
   }
 
@@ -1316,43 +1207,17 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
   }
 
   Widget _buildStatusFilter() {
-    final statuses = ['all', 'pending', 'confirmed', 'completed', 'cancelled', 'rejected'];
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: statuses.map((status) {
-          final isSelected = _selectedStatus == status;
-          return GestureDetector(
-            onTap: () => setState(() {
-              _selectedStatus = status == 'all' ? null : status;
-              _loadBookings();
-            }),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primary : AppTheme.surfaceContainer,
-                border: Border.all(
-                  color: isSelected ? AppTheme.primary : AppTheme.outlineVariant,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  status[0].toUpperCase() + status.substring(1),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppTheme.onPrimary : AppTheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    final statuses = ['pending', 'confirmed', 'completed', 'cancelled', 'rejected'];
+    return FilterChipsWidget(
+      filters: statuses,
+      selected: _selectedStatus,
+      onSelected: (value) {
+        setState(() {
+          _selectedStatus = value;
+        });
+        _loadBookings();
+      },
+      allLabel: 'All',
     );
   }
 
@@ -1646,43 +1511,17 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
   }
 
   Widget _buildStatusFilter() {
-    final statuses = ['all', 'pending', 'paid', 'refunded'];
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: statuses.map((status) {
-          final isSelected = _selectedStatus == status;
-          return GestureDetector(
-            onTap: () => setState(() {
-              _selectedStatus = status == 'all' ? null : status;
-              _loadPayments();
-            }),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primary : AppTheme.surfaceContainer,
-                border: Border.all(
-                  color: isSelected ? AppTheme.primary : AppTheme.outlineVariant,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  status[0].toUpperCase() + status.substring(1),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppTheme.onPrimary : AppTheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+    final statuses = ['pending', 'paid', 'refunded'];
+    return FilterChipsWidget(
+      filters: statuses,
+      selected: _selectedStatus,
+      onSelected: (value) {
+        setState(() {
+          _selectedStatus = value;
+        });
+        _loadPayments();
+      },
+      allLabel: 'All',
     );
   }
 
