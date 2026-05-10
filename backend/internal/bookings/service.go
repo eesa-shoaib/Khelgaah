@@ -84,3 +84,11 @@ func (s *Service) Cancel(ctx context.Context, bookingID, userID int64) (Booking,
 
 	return s.repo.Cancel(ctx, bookingID, userID)
 }
+
+func (s *Service) GetByID(ctx context.Context, bookingID, userID int64) (Booking, error) {
+	if bookingID <= 0 {
+		return Booking{}, fmt.Errorf("%w: booking id must be positive", ErrInvalidBooking)
+	}
+
+	return s.repo.GetByID(ctx, bookingID, userID)
+}

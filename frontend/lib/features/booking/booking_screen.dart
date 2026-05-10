@@ -197,11 +197,31 @@ class _BookingScreenState extends State<BookingScreen> {
         children: [
           BookingSummaryCard(
             title: widget.facility.name,
-            subtitle: '${widget.facility.sport} • ${widget.facility.type}',
+            subtitle: widget.facility.venueName != null
+                ? '${widget.facility.venueName}${widget.facility.venueCity != null ? ' • ${widget.facility.venueCity}' : ''}\n${widget.facility.sport} • ${widget.facility.type}'
+                : '${widget.facility.sport} • ${widget.facility.type}',
             meta: widget.facility.openSummary.isEmpty
                 ? 'LIVE BOOKING'
                 : widget.facility.openSummary.toUpperCase(),
           ),
+          if (widget.facility.pricePerHour != null && widget.facility.pricePerHour != '0' && widget.facility.pricePerHour != '0.00')
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: BookingSummaryCard(
+                title: 'Price',
+                subtitle: 'PKR ${widget.facility.pricePerHour}/hour',
+                meta: 'RATE',
+              ),
+            ),
+          if (widget.facility.openTime != null && widget.facility.openTime!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: BookingSummaryCard(
+                title: 'Hours',
+                subtitle: '${widget.facility.openTime} - ${widget.facility.closeTime ?? 'N/A'}',
+                meta: 'OPERATING',
+              ),
+            ),
           const SizedBox(height: 20),
           const Text(
             'Pick a day',

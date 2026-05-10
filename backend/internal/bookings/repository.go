@@ -13,6 +13,7 @@ type Repository interface {
 	Create(ctx context.Context, tx pgx.Tx, userID, facilityID int64, start, end time.Time) (Booking, error)
 	ListByUser(ctx context.Context, userID int64) ([]Booking, error)
 	Cancel(ctx context.Context, bookingID, userID int64) (Booking, error)
+	GetByID(ctx context.Context, bookingID, userID int64) (Booking, error)
 }
 
 type repository struct {
@@ -134,6 +135,35 @@ func (r *repository) Cancel(ctx context.Context, bookingID, userID int64) (Booki
 		WHERE booking_id = $1
 	`, bookingID)
 	if err != nil {
+		return Booking{}, err
+	}
+
+	return booking, nil
+}
+
+func (r *repository) GetByID(ctx context.Context, bookingID, userID int64) (Booking, error) {
+	query := `
+		SELECT id, user_id, facility_id, start_time, end_time, status, notes, created_at, updated_at
+		FROM bookings
+		WHERE id = $1 AND user_id = $2
+	`
+
+	var booking Booking
+	err := r.db.QueryRow(ctx, query, bookingID, userID).Scan(
+		&booking.ID,
+		&booking.UserID,
+		&booking.FacilityID,
+		&booking.StartTime,
+		&booking.EndTime,
+		&booking.Status,
+		&booking.Notes,
+		&booking.CreatedAt,
+		&booking.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Booking{}, ErrBookingNotFound
+		}
 		return Booking{}, err
 	}
 

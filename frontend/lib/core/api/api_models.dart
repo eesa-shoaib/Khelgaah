@@ -83,26 +83,44 @@ class FacilityDto {
   const FacilityDto({
     required this.id,
     required this.venueId,
+    this.venueName,
+    this.venueCity,
     required this.name,
     required this.sport,
     required this.type,
     required this.openSummary,
+    this.pricePerHour,
+    this.openTime,
+    this.closeTime,
+    this.slotDurationMins,
   });
 
   final int id;
   final int venueId;
+  final String? venueName;
+  final String? venueCity;
   final String name;
   final String sport;
   final String type;
   final String openSummary;
+  final String? pricePerHour;
+  final String? openTime;
+  final String? closeTime;
+  final int? slotDurationMins;
 
   factory FacilityDto.fromJson(Map<String, dynamic> json) => FacilityDto(
     id: parseNum(json['id'])?.toInt() ?? 0,
     venueId: parseNum(json['venue_id'])?.toInt() ?? 0,
+    venueName: json['venue_name'] as String?,
+    venueCity: json['venue_city'] as String?,
     name: json['name'] as String,
     sport: json['sport'] as String,
     type: json['type'] as String,
     openSummary: json['open_summary'] as String? ?? '',
+    pricePerHour: json['price_per_hour'] as String?,
+    openTime: json['open_time'] as String?,
+    closeTime: json['close_time'] as String?,
+    slotDurationMins: parseNum(json['slot_duration_mins'])?.toInt(),
   );
 }
 

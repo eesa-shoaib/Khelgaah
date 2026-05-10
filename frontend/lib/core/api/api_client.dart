@@ -128,6 +128,22 @@ class ApiClient {
     return _decodeList(response, 'bookings', BookingDto.fromJson);
   }
 
+  Future<BookingDto> getBookingById({required String token, required int bookingId}) async {
+    final response = await _httpClient.get(
+      _uri('/api/v1/bookings/$bookingId'),
+      headers: _headers(token: token),
+    );
+    return _decodeSingle(response, BookingDto.fromJson);
+  }
+
+  Future<BookingDto> cancelMyBooking({required String token, required int bookingId}) async {
+    final response = await _httpClient.post(
+      _uri('/api/v1/bookings/$bookingId/cancel'),
+      headers: _headers(token: token),
+    );
+    return _decodeSingle(response, BookingDto.fromJson);
+  }
+
   Future<UserProfile> me({required String token}) async {
     final response = await _httpClient.get(
       _uri('/api/v1/me'),
@@ -392,7 +408,7 @@ class ApiClient {
     required String token,
     required int bookingId,
   }) async {
-    final response = await _httpClient.post(
+    final response = await _httpClient.put(
       _uri('/api/v1/venue-owner/bookings/$bookingId/approve'),
       headers: _headers(token: token),
     );
@@ -404,7 +420,7 @@ class ApiClient {
     required int bookingId,
     String? reason,
   }) async {
-    final response = await _httpClient.post(
+    final response = await _httpClient.put(
       _uri('/api/v1/venue-owner/bookings/$bookingId/reject'),
       headers: _headers(token: token),
       body: jsonEncode({'reason': reason ?? ''}),
@@ -417,7 +433,7 @@ class ApiClient {
     required int bookingId,
     String? reason,
   }) async {
-    final response = await _httpClient.post(
+    final response = await _httpClient.put(
       _uri('/api/v1/venue-owner/bookings/$bookingId/cancel'),
       headers: _headers(token: token),
       body: jsonEncode({'reason': reason ?? ''}),
