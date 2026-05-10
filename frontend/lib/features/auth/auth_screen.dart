@@ -266,7 +266,6 @@ class _RoleField extends StatelessWidget {
           items: const [
             DropdownMenuItem(value: 'customer', child: Text('Customer')),
             DropdownMenuItem(value: 'venue_owner', child: Text('Venue Owner')),
-            DropdownMenuItem(value: 'admin', child: Text('Admin')),
           ],
           onChanged: onChanged,
         ),

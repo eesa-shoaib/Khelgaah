@@ -33,9 +33,9 @@
 - Loading Screen with animated branding
 - Reusable UI components (AppFacilityCard, AppRatingBadge, etc.)
 - Dark theme with orange accent
-- Venue Owner Portal (Dashboard, Venues List, Facilities List, Bookings with approve/reject, Analytics)
+- Venue Owner Portal (Dashboard, Venues List, Facilities List, Bookings with approve/reject, Analytics) with AppLogo branding
 - Venue Owner Booking Details Screen with approve/reject actions
-- Admin Portal (Dashboard with real stats, User Management, Venue Management, Booking Management, Analytics)
+- Admin Portal (Dashboard with real stats, AppLogo branding, User Management, Venue Management, Booking Management, Analytics)
 - Profile Screen with Booking History (real API data), role-based navigation
 
 ---
@@ -173,6 +173,16 @@ Not yet implemented.
 - Fix availability slot generation edge cases (overlapping slots)
 - Add CORS configuration for frontend integration
 - Export analytics data to CSV for admins
+- Create seed command for admin user creation and demo data population
+
+### Admin User Creation (TODO)
+
+Currently no bootstrap mechanism exists to create the first admin user. Standard approaches:
+- CLI seed command: `go run cmd/seed/main.go --create-admin email@domain.com`
+- Env variable bootstrap: Set `ADMIN_EMAIL` + `ADMIN_PASSWORD` on first startup
+- Database migration: Insert admin row directly via migration file
+
+Recommended: Seed command that creates admin user and demo data on first run.
 
 ---
 
@@ -218,6 +228,7 @@ Not yet implemented.
 2. **Venue Status**: Must be approved by admin before visible to customers
 3. **Payment**: Integrated but not real-time (gateway integration pending)
 4. **Availability**: Slot-based, owners control time slots
+5. **Signup Roles**: Only `customer` and `venue_owner` allowed; admin must be created via admin panel or seed command
 
 ### Current API Endpoints Summary
 

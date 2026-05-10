@@ -68,7 +68,11 @@ class _TimeSlotsManagementScreenState extends State<TimeSlotsManagementScreen> {
     if (_facility?.slotDurationMins != null) {
       _slotDuration = _facility!.slotDurationMins!;
     }
-    
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadTimeSlots();
   }
 
