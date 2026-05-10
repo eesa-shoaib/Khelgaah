@@ -167,8 +167,9 @@ class _VenueOwnerAnalyticsScreenState extends State<VenueOwnerAnalyticsScreen> {
   Widget _buildSectionTitle(ThemeData theme, String title) {
     return Text(
       title,
-      style: theme.textTheme.titleMedium?.copyWith(
+      style: const TextStyle(
         color: AppTheme.onSurface,
+        fontSize: 20,
         fontWeight: FontWeight.w700,
       ),
     );

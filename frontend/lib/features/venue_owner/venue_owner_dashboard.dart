@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/api/api_models.dart';
 import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
-import 'package:frontend/core/widgets/app_facility_card.dart';
 import 'package:frontend/core/widgets/app_widgets.dart';
-import 'package:frontend/core/widgets/profile_action_icon.dart';
-import 'package:frontend/core/widgets/stats_card_widget.dart';
 import 'package:frontend/features/venue_owner/venue_owner_bookings_screen.dart';
 import 'package:frontend/features/venue_owner/venue_owner_layout.dart';
 import 'package:frontend/features/venue_owner/venues_list_screen.dart';
@@ -97,7 +94,7 @@ class _VenueOwnerDashboardState extends State<VenueOwnerDashboard> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const AppLogo(width: 170, textAlign: TextAlign.left),
         actions: const [ProfileActionIcon()],
       ),
       body: _buildBody(user),

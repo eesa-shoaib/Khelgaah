@@ -13,7 +13,7 @@ class AdminDashboard extends StatelessWidget {
       length: 6,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Admin Portal'),
+          title: const AppLogo(width: 170, textAlign: TextAlign.left),
           actions: const [ProfileActionIcon()],
           bottom: const TabBar(
             isScrollable: true,
@@ -121,7 +121,7 @@ class _AdminOverviewSectionState extends State<AdminOverviewSection> {
     return RefreshIndicator(
       onRefresh: _loadDashboard,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           BookingSummaryCard(
@@ -144,7 +144,7 @@ class _AdminOverviewSectionState extends State<AdminOverviewSection> {
             'Quick Actions',
             style: TextStyle(
               color: AppTheme.onSurface,
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -179,7 +179,7 @@ class _AdminOverviewSectionState extends State<AdminOverviewSection> {
             'Overview',
             style: TextStyle(
               color: AppTheme.onSurface,
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -475,7 +475,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Widget _buildUsersList() {
     if (_users.isEmpty) {
-      return const Center(child: Text('No users found'));
+      return const BookingSummaryCard(
+              title: 'No users found',
+              subtitle: 'There are no users matching your filters.',
+              meta: 'USERS',
+            );
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -763,7 +767,11 @@ class _VenueManagementScreenState extends State<VenueManagementScreen> {
 
   Widget _buildVenuesList() {
     if (_venues.isEmpty) {
-      return const Center(child: Text('No venues found'));
+      return const BookingSummaryCard(
+              title: 'No venues found',
+              subtitle: 'There are no venues matching your filters.',
+              meta: 'VENUES',
+            );
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -1223,7 +1231,11 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
 
   Widget _buildBookingsList() {
     if (_bookings.isEmpty) {
-      return const Center(child: Text('No bookings found'));
+      return const BookingSummaryCard(
+              title: 'No bookings found',
+              subtitle: 'There are no bookings matching your filters.',
+              meta: 'BOOKINGS',
+            );
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -1527,7 +1539,11 @@ class _AdminPaymentsScreenState extends State<AdminPaymentsScreen> {
 
   Widget _buildPaymentsList() {
     if (_payments.isEmpty) {
-      return const Center(child: Text('No payments found'));
+      return const BookingSummaryCard(
+              title: 'No payments found',
+              subtitle: 'There are no payments matching your filters.',
+              meta: 'PAYMENTS',
+            );
     }
 
     return ListView.builder(

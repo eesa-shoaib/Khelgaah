@@ -47,7 +47,7 @@ func (s *Service) Signup(ctx context.Context, input SignupInput) (AuthResult, er
 		return AuthResult{}, fmt.Errorf("%w: admin signup is not allowed", ErrInvalidSignup)
 	}
 	if role != "customer" && role != "venue_owner" {
-		return AuthResult{}, fmt.Errorf("%w: unsupported role", ErrInvalidSignup)
+		return AuthResult{}, fmt.Errorf("%w: role must be 'customer' or 'venue_owner'", ErrInvalidSignup)
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)

@@ -99,18 +99,18 @@ class _VenueDetailsScreenState extends State<VenueDetailsScreen> {
                       const SizedBox(height: 20),
                       Text(
                         'Facilities (${_facilities.length})',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.onSurface,
-                            ),
+                        style: const TextStyle(
+                          color: AppTheme.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       if (_facilities.isEmpty)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20),
-                            child: Text('No facilities found'),
-                          ),
+                        const BookingSummaryCard(
+                          title: 'No facilities found',
+                          subtitle: 'Add a facility to get started.',
+                          meta: 'FACILITIES',
                         )
                       else
                         for (final facility in _facilities)

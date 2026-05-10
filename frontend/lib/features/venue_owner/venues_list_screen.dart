@@ -5,6 +5,7 @@ import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/widgets/parallelogram_btn.dart';
 import 'package:frontend/core/widgets/venue_card_widget.dart';
 import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/features/venue_owner/venue_details_screen.dart';
 
@@ -263,9 +264,16 @@ class VenuesListScreenState extends State<VenuesListScreen> {
           RefreshIndicator(
             onRefresh: _loadVenues,
             child: _venues.isEmpty
-                ? _EmptyState(onAdd: () => showAddVenueDialog())
-                : ListView.builder(
+                ? Padding(
                     padding: const EdgeInsets.all(16),
+                    child: BookingSummaryCard(
+                      title: 'No venues yet',
+                      subtitle: 'Tap the button below to add your first venue.',
+                      meta: 'VENUES',
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
                     itemCount: _venues.length,
                     itemBuilder: (context, index) {
                       final venue = _venues[index];

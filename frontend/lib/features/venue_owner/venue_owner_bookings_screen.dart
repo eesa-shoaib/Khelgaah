@@ -145,13 +145,17 @@ class _VenueOwnerBookingsScreenState extends State<VenueOwnerBookingsScreen> {
     final bookings = _filteredBookings;
 
     if (bookings.isEmpty) {
-      return const Center(child: Text('No bookings found'));
+      return const BookingSummaryCard(
+        title: 'No bookings found',
+        subtitle: 'Bookings will appear here once created.',
+        meta: 'BOOKINGS',
+      );
     }
 
     return RefreshIndicator(
       onRefresh: _loadBookings,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         itemCount: bookings.length,
         itemBuilder: (context, index) {
           final booking = bookings[index];

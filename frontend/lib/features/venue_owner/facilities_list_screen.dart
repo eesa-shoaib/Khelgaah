@@ -4,6 +4,7 @@ import 'package:frontend/core/app_controller.dart';
 import 'package:frontend/core/theme/app_theme.dart';
 import 'package:frontend/core/utils/app_feedback.dart';
 import 'package:frontend/core/widgets/confirmation_dialog_widget.dart';
+import 'package:frontend/core/widgets/app_widgets.dart';
 import 'package:frontend/core/widgets/facility_card_widget.dart';
 import 'package:frontend/core/widgets/profile_action_icon.dart';
 import 'package:frontend/features/venue_owner/facility_details_screen.dart';
@@ -161,13 +162,20 @@ class _FacilitiesListScreenState extends State<FacilitiesListScreen> {
     }
 
     if (_facilities.isEmpty) {
-      return _EmptyState(onAdd: _navigateToAddFacility);
+return Padding(
+        padding: const EdgeInsets.all(16),
+        child: BookingSummaryCard(
+          title: 'No facilities yet',
+          subtitle: 'Add a facility to get started.',
+          meta: 'FACILITIES',
+        ),
+      );
     }
 
     return RefreshIndicator(
       onRefresh: _loadFacilities,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         children: [
           for (final facility in _facilities)
             FacilityCard(
@@ -366,7 +374,7 @@ class _FacilityEditScreenState extends State<FacilityEditScreen> {
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
               child: Form(
                 key: _formKey,
                 child: Column(

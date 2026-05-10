@@ -13,14 +13,14 @@
 
 ### Backend (Go) - Mostly Complete
 
-- **Auth**: Signup/Login with JWT tokens, role-based auth (customer/venue_owner/admin)
+- **Auth**: Signup/Login with JWT tokens, role-based auth (customer/venue_owner only - admin creation via admin panel only)
 - **Users**: Profile management, user status management
 - **Venues**: Public listing, venue discovery
 - **Facilities**: Search, filtering, facility listing
 - **Availability**: Slot generation, availability checks with date/duration params
 - **Bookings**: Create, list, approve/reject/cancel booking flow
 - **Venue Owner Portal**: Dashboard stats, venue CRUD, facility CRUD, time slots management, booking management, analytics
-- **Admin Portal**: User management, venue approval/suspension, booking management, system analytics
+- **Admin Portal**: User management, venue approval/suspension, booking management, system analytics, dashboard branding with AppLogo
 - **Payments**: Model, repository, service, admin routes (integration incomplete)
 
 ### Frontend (Flutter) - Mostly Complete
