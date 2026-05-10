@@ -299,9 +299,8 @@ class _BookingScreenState extends State<BookingScreen> {
             )
           else if (_slots.isEmpty)
             const BookingSummaryCard(
-              title: 'No slots returned',
-              subtitle:
-                  'This facility has no operating hours or no slots for that day.',
+              title: 'No timeslot available',
+              subtitle: 'This facility has no timeslots available for that day.',
               meta: 'LIVE DATA',
             )
           else

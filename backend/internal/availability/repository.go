@@ -26,111 +26,138 @@ func NewRepository(db *pgxpool.Pool) Repository {
 }
 
 func (r *repository) ListSlots(ctx context.Context, facilityID int64, day time.Time, durationMinutes int) ([]Slot, error) {
-	var slots []Slot
+	dayStart := time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
+	dayEnd := dayStart.Add(24 * time.Hour)
 
-	var opensAt, closesAt string
-	var slotDurationMins int
-	var hasOperatingHours bool
-
-	checkHoursQuery := `
-		SELECT opens_at::text, closes_at::text, slot_duration_mins
-		FROM facility_operating_hours
-		WHERE facility_id = $1 AND weekday = $2
-	`
-	err := r.db.QueryRow(ctx, checkHoursQuery, facilityID, day.Weekday()).Scan(&opensAt, &closesAt, &slotDurationMins)
-	if err == nil {
-		hasOperatingHours = true
-	} else if err != pgx.ErrNoRows {
-		return nil, err
-	}
-
-	if !hasOperatingHours {
-		return slots, nil
-	}
-
-	openTime, err := parseTimeOfDay(opensAt)
-	if err != nil {
-		return nil, err
-	}
-	closeTime, err := parseTimeOfDay(closesAt)
+	ownerWindows, err := r.loadOwnerWindows(ctx, facilityID, dayStart, dayEnd)
 	if err != nil {
 		return nil, err
 	}
 
+	blockedWindows, err := r.loadBlockedWindows(ctx, facilityID, dayStart, dayEnd)
+	if err != nil {
+		return nil, err
+	}
+
+	slotDurationMins := durationMinutes
 	if slotDurationMins <= 0 {
 		slotDurationMins = 60
 	}
 
-	dayStart := time.Date(day.Year(), day.Month(), day.Day(), openTime.Hour(), openTime.Minute(), 0, 0, day.Location())
-	dayEnd := time.Date(day.Year(), day.Month(), day.Day(), closeTime.Hour(), closeTime.Minute(), 0, 0, day.Location())
+	if len(ownerWindows) > 0 {
+		return generateSlotsFromWindows(ownerWindows, blockedWindows, slotDurationMins), nil
+	}
 
-	conflictQuery := `
-		SELECT b.start_time, b.end_time FROM bookings b
-		WHERE b.facility_id = $1
-		  AND b.status IN ('pending', 'confirmed', 'completed')
-		  AND b.start_time < $3 AND b.end_time > $2
-		UNION ALL
-		SELECT ts.starts_at, ts.ends_at FROM time_slots ts
-		WHERE ts.facility_id = $1
-		  AND ts.slot_type = 'blocked'
-		  AND ts.status = 'active'
-		  AND ts.starts_at < $3 AND ts.ends_at > $2
-	`
+	return nil, nil
+}
 
-	blockedMap := make(map[string]bool)
-	rows, err := r.db.Query(ctx, conflictQuery, facilityID, dayStart, dayEnd)
+func mapStatus(isAvailable bool) string {
+	if isAvailable {
+		return "available"
+	}
+	return "blocked"
+}
+
+type timeWindow struct {
+	start time.Time
+	end   time.Time
+}
+
+func (r *repository) loadOwnerWindows(ctx context.Context, facilityID int64, dayStart, dayEnd time.Time) ([]timeWindow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT starts_at, ends_at
+		FROM time_slots
+		WHERE facility_id = $1
+		  AND slot_type = 'available'
+		  AND status = 'active'
+		  AND starts_at >= $2
+		  AND starts_at < $3
+		ORDER BY starts_at
+	`, facilityID, dayStart, dayEnd)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var startTS, endTS time.Time
+	var windows []timeWindow
 	for rows.Next() {
+		var startTS, endTS time.Time
 		if err := rows.Scan(&startTS, &endTS); err != nil {
 			return nil, err
 		}
-		current := startTS
-		for current.Before(endTS) {
-			key := current.Format(time.RFC3339)
-			blockedMap[key] = true
-			current = current.Add(time.Minute)
-		}
+		windows = append(windows, timeWindow{start: startTS, end: endTS})
 	}
-
-	current := dayStart
-	for current.Add(time.Duration(slotDurationMins) * time.Minute).Before(dayEnd) || current.Add(time.Duration(slotDurationMins) * time.Minute).Equal(dayEnd) {
-		slotEnd := current.Add(time.Duration(slotDurationMins) * time.Minute)
-		if slotEnd.After(dayEnd) {
-			break
-		}
-
-		isAvailable := !blockedMap[current.Format(time.RFC3339)]
-		status := "available"
-		if !isAvailable {
-			status = "blocked"
-		}
-
-		slots = append(slots, Slot{
-			StartTime:   current,
-			EndTime:     slotEnd,
-			IsAvailable: isAvailable,
-			Status:      status,
-		})
-
-		current = slotEnd
-	}
-
-	return slots, nil
+	return windows, rows.Err()
 }
 
-func parseTimeOfDay(s string) (time.Time, error) {
-	base := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
-	if len(s) == 5 {
-		base, _ = time.Parse("15:04", s)
-	} else if len(s) == 8 {
-		base, _ = time.Parse("15:04:05", s)
+func (r *repository) loadBlockedWindows(ctx context.Context, facilityID int64, dayStart, dayEnd time.Time) ([]timeWindow, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT b.start_time, b.end_time
+		FROM bookings b
+		WHERE b.facility_id = $1
+		  AND b.status IN ('pending', 'confirmed', 'completed')
+		  AND b.start_time < $3
+		  AND b.end_time > $2
+		UNION ALL
+		SELECT ts.starts_at, ts.ends_at
+		FROM time_slots ts
+		WHERE ts.facility_id = $1
+		  AND ts.slot_type = 'blocked'
+		  AND ts.status = 'active'
+		  AND ts.starts_at < $3
+		  AND ts.ends_at > $2
+		ORDER BY 1
+	`, facilityID, dayStart, dayEnd)
+	if err != nil {
+		return nil, err
 	}
-	return base, nil
+	defer rows.Close()
+
+	var windows []timeWindow
+	for rows.Next() {
+		var startTS, endTS time.Time
+		if err := rows.Scan(&startTS, &endTS); err != nil {
+			return nil, err
+		}
+		windows = append(windows, timeWindow{start: startTS, end: endTS})
+	}
+	return windows, rows.Err()
+}
+
+func generateSlotsFromWindows(windows []timeWindow, blockedWindows []timeWindow, durationMinutes int) []Slot {
+	var slots []Slot
+	slotDuration := time.Duration(durationMinutes) * time.Minute
+
+	for _, window := range windows {
+		current := window.start
+		for {
+			slotEnd := current.Add(slotDuration)
+			if slotEnd.After(window.end) {
+				break
+			}
+
+			isAvailable := !hasOverlap(current, slotEnd, blockedWindows)
+			slots = append(slots, Slot{
+				StartTime:   current,
+				EndTime:     slotEnd,
+				IsAvailable: isAvailable,
+				Status:      mapStatus(isAvailable),
+			})
+
+			current = slotEnd
+		}
+	}
+
+	return slots
+}
+
+func hasOverlap(start, end time.Time, windows []timeWindow) bool {
+	for _, window := range windows {
+		if start.Before(window.end) && end.After(window.start) {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *repository) HasConflict(ctx context.Context, q Querier, facilityID int64, start, end time.Time) (bool, error) {

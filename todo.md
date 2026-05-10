@@ -23,6 +23,8 @@
 - **Admin Portal**: User management, venue approval/suspension, booking management, system analytics, dashboard branding with AppLogo
 - **Payments**: Model, repository, service, admin routes (integration incomplete)
 
+**Availability rule update:** customer booking availability now only shows venue-owner-created `time_slots`. If a venue owner has not created slots for a facility/day, customers see no bookable timeslots.
+
 ### Frontend (Flutter) - Mostly Complete
 
 - Home Screen with category-based facility discovery
